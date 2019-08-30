@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# ringaplay - Play a wav-file over the amplifier
+
+[[ ! -f $1 ]] && echo "The argument must be a file: $1" && exit 1
+file=$(file "$1")
+type=$(cut -d' ' -f2 "$file")
+[[ ! $type = RIFF ]] &&
+	echo "$1 must be a wav file, but isn't: $file" && exit 2
+
+# Turn on the amplifier, play the file, and turn if off again
+relaypin=14
+gpio export $relaypin out
+gpio -g write $relaypin 0
+sleep 3
+aplay "$1"
+sleep .1
+gpio -g write $relaypin 1
+
+exit 0

@@ -1,0 +1,9 @@
+SHELL=/bin/bash
+
+# (m h dom mon dow) command
+
+@reboot /usr/bin/tmux new -d -s Ring /home/pi/ring
+
+## Alternative deployment without tmux
+#@reboot /home/pi/ring >/home/pi/ring.log
+
