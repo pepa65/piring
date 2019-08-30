@@ -26,8 +26,8 @@ Ring(){ # $1:Elementary(or not)  I:$relaypin $ampdelay $time  IO:$relayon
 		Log "* Turning relay on failed"
 	sleep $ampdelay
 	# Ring bell
-	aplay "$wav" &>/dev/null && Log "-$e Ring $now" ||
-		Log "* Ringing at $now failed"
+	aplay "$wav" &>/dev/null && Log "-$elementary Ring $now" ||
+		Log "* Ringing$elementary at $now failed"
 	sleep .1
 	# Turn relay off
 	gpio -g write $relaypin 1 && relayon=0 ||
