@@ -3,16 +3,15 @@ set +v
 # ring - Ring the bell at the right time and control the relay
 # Usage: ring
 # Reads ringdates for exeptions and ringtimes, format:
-#   Ringdates: 'YYYY-MM-DD s' where 's' is the alphabetical Special schedule
-#     code (or if left empty it means a No School day, never match)
-#   Ringtimes: 'HH:MMsr' where 's' is the same Special schedule code (or
-#     empty/space for the Normal schedule) and 'r' is the Ringtone code (can
-#     be left out for the Normal '0' code) which points to the array element
-#     in 'ringtones' that specify the file names.
-# Normally, every weekday the Normal schedule will ring, except on dates that
-#   are listed in the 'ringdates' file, which follow a special schedule,
-#   corresponding to the letter in the 'ringtimes' file. (If there is no
-#   corresponding letter, there will be no ringing: a No School day.)
+#   Ringdates: 'YYYY-MM-DD s' where 's' is the alphabetical special Schedule
+#     code (leave out for No School days)
+#   Ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
+#     (or space for the Normal schedule) and 'r' is the Ringtone code, which
+#     points to the array element in 'ringtones' that specifies the file name
+#     (can be left out for the Normal '0' code).
+# Workings: Normally, every weekday the Normal schedule will ring, except on
+#   dates that are listed in the 'ringdates' file, which follow a special
+#   schedule that corresponds to the letter in the 'ringtimes' file.
 # Required: wiringpi(gpio) coreutils(sleep fold) alsa-utils(aplay) date
 
 # Adjustables
