@@ -3,14 +3,22 @@ set +v
 # ring - Ring the bell at the right time and control the relay
 # Usage: ring
 # Reads ringdates for exeptions and ringtimes, format:
-#   Ringdates: 'YYYY-MM-DD d' where 'd' is the Day: X: No School, L: Late Start
-#   Ringtimes: 'HH:MM s' where 's' is the ring Schedule:
-#     N: Normal, E: Elementary Normal, L: Late Start, e: Elementary Late Start
+#   Ringdates: 'YYYY-MM-DD s' where 's' is the alphabetical Special schedule
+#     code (or if left empty it means a No School day, never match)
+#   Ringtimes: 'HH:MMsr' where 's' is the same Special schedule code (or
+#     empty/space for the Normal schedule) and 'r' is the Ringtone code (can
+#     be left out for the Normal '0' code) which points to the array element
+#     in 'ringtones' that specify the file names.
+# Normally, every weekday the Normal schedule will ring, except on dates that
+#   are listed in the 'ringdates' file, which follow a special schedule,
+#   corresponding to the letter in the 'ringtimes' file. (If there is no
+#   corresponding letter, there will be no ringing: a No School day.)
 # Required: wiringpi(gpio) coreutils(sleep fold) alsa-utils(aplay) date
 
 # Adjustables
 ringdates=$HOME/ringdates ringtimes=$HOME/ringtimes
-bell=$HOME/ringbell.wav alarm=$HOME/ringalarm.wav belle=$HOME/ringbelle.wav
+ringtones=("$HOME/ringbell.wav" "$HOME/ringbelle.wav" "$HOME/ringding.wav")
+alarm=$HOME/ringalarm.wav
 relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3
 
 Log(){ # $1:message $2:time(or not)
@@ -18,16 +26,18 @@ Log(){ # $1:message $2:time(or not)
 	fold -s <<<"$1 $datetime"
 }
 
-Ring(){ # $1:Elementary(or not)  I:$relaypin $ampdelay $time  IO:$relayon
-	local elementary= wav=$bell
-	[[ $1 ]] && elementary=' Elementary' wav=$belle
+Ring(){ # $1:ringcode  I:$ringtones $relaypin $ampdelay $time  IO:$relayon
+	local ringcode=0 wav
+	# Empty ringcode is 0
+	[[ $1 ]] && ringcode=$1
+	wav=${ringtones[ringcode]}
 	# Turn relay on
 	gpio -g write $relaypin 0 && relayon=1 ||
 		Log "* Turning relay on failed"
 	sleep $ampdelay
 	# Ring bell
-	aplay "$wav" &>/dev/null && Log "-$elementary Ring $now" ||
-		Log "* Ringing$elementary at $now failed"
+	aplay "$wav" &>/dev/null && Log "- Ring $ringcode $now" ||
+		Log "* Playing $wav at $now failed"
 	sleep .1
 	# Turn relay off
 	gpio -g write $relaypin 1 && relayon=0 ||
@@ -81,25 +91,21 @@ Bellcheck(){ # I:$xdates $ldates $ltimes $ntimes  IO:$nowold
 	[[ $now = $nowold ]] && return
 	nowold=$now
 	# Ignore Sat&Sun (6&7)
-	local numday=$(date '+%u')
+	local numday=$(date '+%u') i day schedule
 	((numday>5)) && return
 	local today=$(date +'%Y-%m-%d')
-	# Ignore No School dates
-	if [[ $xdates == *" $today "* ]]
-	then
-		[[ $now = '00:00' ]] && Log "- $today No School day"
-		return
-	fi
-	if [[ $ldates == *" $today "* ]]
-	then # Late Start day
-		[[ $now = '00:00' ]] && Log "- $today Late Start day"
-		[[ $ltimes == *" $now "* ]] && Ring
-		[[ $eltimes == *" $now "* ]] && Ring e
-	else # Normal day
-		[[ $now = '00:00' ]] && Log "- $today Normal day"
-		[[ $ntimes == *" $now "* ]] && Ring
-		[[ $entimes == *" $now "* ]] && Ring E
-	fi
+	for i in "${!specialdates[@]}"
+	do
+		if [[ "${specialdates[$i]} " == *" $today "* ]]
+		then
+			[[ $i = _ ]] && day='No School' || day="'$i'"
+			[[ $now = '00:00' ]] && Log "- $today $day day"
+			[[ $i = _ ]] && return
+			[[ "${schedules[$i]} " == *" $now "* ]] &&
+				Ring "${ringcodes[$now$i]}" && return
+		fi
+	done
+	[[ "${schedules[_]} " == *" $now "* ]] && Ring "${ringcodes[$now]}"
 }
 
 # Read files into arrays
@@ -107,26 +113,32 @@ mapfile -O 1 -t dates <"$ringdates"
 mapfile -O 1 -t times <"$ringtimes"
 
 # Globals
-xdates=' ' ldates=' ' ntimes=' ' ltimes=' ' entimes=' ' eltimes=' '
-nowold= relayon=0 buttonold=9 buttontime=9999999999 stop=
+declare -A schedules ringcodes specialdates
+normalschedule= nowold= relayon=0 buttonold=9 buttontime=9999999999 stop=
 
 Log "# Ring program initializing" time
 Log "> Amplifier switch-on delay $ampdelay s,  Button polling $pollres s"
 Log "> Validating Time information in '$ringtimes'"
 error=0
+
 for i in "${!times[@]}"
-do # Validate and split times
-	line=${times[i]} time=${line%% *} schedule=${line##* }
-	[[ ! $line =~ ^[0-9][0-9]:[0-9][0-9]' '.$ ]] &&
-		Error "Format should be 'HH:MM s'"
+do # Validate and store times
+	line=${times[i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
 	! date -d "$time" &>/dev/null &&
 		Error "Invalid Time: '$time'"
-	[[ ! $schedule =~ ^[NELe]$ ]] &&
-		Error "Schedule code should be N, E, L, or e, not '$schedule'"
-	[[ $schedule = N ]] && ntimes+="$time "
-	[[ $schedule = E ]] && entimes+="$time "
-	[[ $schedule = L ]] && ltimes+="$time "
-	[[ $schedule = e ]] && eltimes+="$time "
+	# Use underscore for the Normal schedule (schedule is empty or space)
+	[[ -z $schedule || $schedule = ' ' ]] && schedule='_'
+	[[ ! $schedule =~ ^[_a-zA-Z]$ ]] &&
+		Error "Schedule should be a upper or lower case letter, not '$schedule'"
+	schedules[$schedule]+=" $time"
+	[[ $ringcode && ! $ringcode = ' ' ]] || ringcode=0
+	[[ ! $ringcode =~ ^[0-9]$ ]] &&
+		Error "Ringcode should be single digit number, not '$ringcode'"
+	((ringcode>${#ringtones[@]})) &&
+		Error "Ringcode is not defined, add .wav files to array 'ringtones'"
+	# Only store ringcodes that are not 0
+	[[ $schedule = _ ]] && schedule=
+	((ringcode)) && ringcodes[$time$schedule]=$ringcode
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtimes"
@@ -136,31 +148,43 @@ Log "> Validating Date information in '$ringdates'"
 error=0
 for i in "${!dates[@]}"
 do # Validate and split dates
-	line=${dates[i]} date=${line%% *} day=${line##* }
-	[[ ! $line =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]' '.$ ]] &&
-		Error "Format should be '20YY-DD-MM d'"
+	line=${dates[i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
+	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
+		Error "Date format should be '20YY-DD-MM'"
 	! date -d "$date" &>/dev/null &&
 		Error "Invalid Date: '$date'"
-	[[ ! $day =~ ^[XL]$ ]] &&
-		Error "Day code should be X or L, not '$day'"
-	[[ $day = L ]] && ldates+="$date "
-	[[ $day = X ]] && xdates+="$date "
+	[[ $empty && ! $empty = ' ' ]] &&
+		Error "There must be 1 space after the date, not '$empty'"
+	# Use underscore for No School (schedule is empty or space)
+	[[ $schedule && ! $schedule = ' ' ]] || schedule='_'
+	[[ ! $schedule =~ ^[_a-zA-Z]$ ]] &&
+		Error "Schedule should be a upper or lower case letter, not '$schedule'"
+	specialdates[$schedule]+=" $date"
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringdates"
-Log "> Normal schedule:$ntimes"
-Log "> Elementary Normal schedule:$entimes"
-Log "> Late Start schedule:$ltimes"
-Log "> Elementary Late Start schedule:$eltimes"
-Log "> No School days:$xdates"
-Log "> Late Start days:$ldates"
+for i in "${!schedules[@]}"
+do
+	[[ $i = _ ]] && s=Normal || s="'$i'"
+	Log "> $s schedule:${schedules[$i]}"
+done
+r="Ringcodes:"
+for i in "${!ringcodes[@]}"
+do r+=" $i=${ringcodes[$i]}"
+done
+Log "> $r"
+for i in "${!specialdates[@]}"
+do
+	[[ $i = _ ]] && d='No School' || d="'$i'"
+	Log "> $d dates:${specialdates[$i]}"
+done
 
 ((errors+=error))
 ((errors==1)) && s= || s=s
 ((errors)) &&
 	Log "* Total of $errors error$s, not starting Ring program" && exit 1 ||
 	Log "> All Times and Dates valid"
-#gpio(){ :;} # for testing without gpio installed
+gpio(){ :;} # for testing without gpio installed
 
 # Setting up pins
 ! gpio export $relaypin out &&
