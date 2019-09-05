@@ -2,23 +2,25 @@
 set +v
 # ring - Ring the bell at the right time and control the relay
 # Usage: ring
-# Reads files 'ringdates', 'ringtimes' and 'ringtones', format:
-#   ringdates: 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s' where 's' is
+# Reads files 'ringdates', 'ringtimes' and 'ringtones' from the same directory
+#   as where the 'ring' script resides. Format:
+# - ringdates: 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s' where 's' is
 #     the alphabetical special Schedule code (capital cancels Normal schedule)
-#   ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
+# - ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
 #     (or space for the Normal schedule) and 'r' is the Ringtone code (which
 #     refers to a line in the 'ringtones' file that specifies a .wav file).
 #     The 'r' can be left out for the Normal '0' code.
-#   ringtones: 'filename' where 'filename' is the location of a .wav file
+# - ringtones: 'filename' where 'filename' is the location of a .wav file
 #     The first line is code '0', the Normal ring tone, the rest is '1' and
 #     upwards (maximum is '9'), the last line is the Alarm tone.
 # Workings: Every weekday the Normal schedule will ring and additional
 #   schedules with a lowercase schedule code, but on special dates with an
 #   uppercase schedule the Normal schedule will not ring.
-# Required: wiringpi(gpio) coreutils(sleep fold) alsa-utils(aplay) date
+# Required: wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay)
+#   date [tmux]
 
 # Adjustables
-ringdates=$HOME/ringdates ringtimes=$HOME/ringtimes ringtones=$HOME/ringtones
+ringdates=ringdates ringtimes=ringtimes ringtones=ringtones
 relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3
 
 Log(){ # $1:message $2:time(or not)
@@ -125,6 +127,9 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 # Globals
 declare -A schedules=() ringcodes=() specialdates=()
 noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i=
+self=$(readlink -e "$0")
+# Read files from the same directory as this script
+cd "${self%/*}"
 
 Log "# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s,  Button polling ${pollres}s"

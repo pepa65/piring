@@ -4,24 +4,27 @@ Controlling a school bell system from the Pi
 ## Usage
 `ring`
 
-Two files, ringdates (for exeptions) and ringtimes (for the schedules) are read.These are checked for proper syntax & semantics, and when OK the program starts
-and keeps running, logging output to stdout.
-
+Reads files `ringdates`, `ringtimes` and `ringtones` from the same directory
+as where the `ring` script resides. These are checked for proper syntax & semantics, and when OK the program starts and keeps running, logging output to stdout.
 ### Format
-* Ringdates: `YYYY-MM-DD s` where `s` is the alphabetical special Schedule code
-(leave out for No School days)
-* Ringtimes: `HH:MMsr` where `s` is the corresponding special Schedule code
-(space for the Normal schedule) and `r` is the Ringtone code, which points to
-the array element in `ringtones` that specifies the file name (can be left out
-for the Normal `0` code).
+- ringdates: 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s' where 's' is
+  the alphabetical special Schedule code (capital cancels Normal schedule)
+- ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
+  (or space for the Normal schedule) and 'r' is the Ringtone code (which
+  refers to a line in the 'ringtones' file that specifies a .wav file).
+  The 'r' can be left out for the Normal '0' code.
+- ringtones: 'filename' where 'filename' is the location of a .wav file
+  The first line is code '0', the Normal ring tone, the rest is '1' and
+  upwards (maximum is '9'), the last line is the Alarm tone.
 
 ### Workings
-Normally, every weekday the Normal schedule will ring, except on dates that
-are listed in the `ringdates` file, which follow a special schedule that
-corresponds to the letter in the `ringtimes` file.
+
+Every weekday the Normal schedule will ring and additional schedules with a
+lowercase schedule code, but on special dates with an uppercase schedule the
+Normal schedule will not ring.
 
 ## Required
-wiringpi(gpio) coreutils(sleep fold) alsa-utils(aplay) date [tmux/screen]
+wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay) date [tmux]
 
 ## Deployment
 To have it autostart on reboot, the script `ringatreboot` can be called from cron at reboot (see `ringcrontab` for an example). This uses tmux, so the session can be attached to when logging in. Alternatively, `ring` can just be called and the output directed to a file.
