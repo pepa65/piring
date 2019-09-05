@@ -2,40 +2,45 @@
 set +v
 # ring - Ring the bell at the right time and control the relay
 # Usage: ring
-# Reads ringdates for exeptions and ringtimes, format:
-#   Ringdates: 'YYYY-MM-DD s' where 's' is the alphabetical special Schedule
-#     code (leave out for No School days)
-#   Ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
-#     (or space for the Normal schedule) and 'r' is the Ringtone code, which
-#     points to the array element in 'ringtones' that specifies the file name
-#     (can be left out for the Normal '0' code).
-# Workings: Normally, every weekday the Normal schedule will ring, except on
-#   dates that are listed in the 'ringdates' file, which follow a special
-#   schedule that corresponds to the letter in the 'ringtimes' file.
+# Reads files 'ringdates', 'ringtimes' and 'ringtones', format:
+#   ringdates: 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s' where 's' is
+#     the alphabetical special Schedule code (capital cancels Normal schedule)
+#   ringtimes: 'HH:MMsr' where 's' is the corresponding Special schedule code
+#     (or space for the Normal schedule) and 'r' is the Ringtone code (which
+#     refers to a line in the 'ringtones' file that specifies a .wav file).
+#     The 'r' can be left out for the Normal '0' code.
+#   ringtones: 'filename' where 'filename' is the location of a .wav file
+#     The first line is code '0', the Normal ring tone, the rest is '1' and
+#     upwards (maximum is '9'), the last line is the Alarm tone.
+# Workings: Every weekday the Normal schedule will ring and additional
+#   schedules with a lowercase schedule code, but on special dates with an
+#   uppercase schedule the Normal schedule will not ring.
 # Required: wiringpi(gpio) coreutils(sleep fold) alsa-utils(aplay) date
 
 # Adjustables
-ringdates=$HOME/ringdates ringtimes=$HOME/ringtimes
-ringtones=("$HOME/ringbell.wav" "$HOME/ringbelle.wav" "$HOME/ringding.wav")
-alarm=$HOME/ringalarm.wav
+ringdates=$HOME/ringdates ringtimes=$HOME/ringtimes ringtones=$HOME/ringtones
 relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3
 
 Log(){ # $1:message $2:time(or not)
-	[[ $2 ]] && local datetime="$(date +'%m/%d %H:%M')"
+	local datetime
+	[[ $2 ]] && datetime="$(date +'%m/%d %H:%M')"
 	fold -s <<<"$1 $datetime"
 }
 
-Ring(){ # $1:ringcode  I:$ringtones $relaypin $ampdelay $time  IO:$relayon
-	local ringcode=0 wav
+Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
+	local schedule ringcode wav
+	[[ $1 = _ ]] && schedule='Normal schedule' || schedule="schedule '$1'"
+	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
-	[[ $1 ]] && ringcode=$1
-	wav=${ringtones[ringcode]}
+	[[ $ringcode ]] || ringcode=0
+	wav=${tones[ringcode]}
 	# Turn relay on
 	gpio -g write $relaypin 0 && relayon=1 ||
 		Log "* Turning relay on failed"
 	sleep $ampdelay
 	# Ring bell
-	aplay "$wav" &>/dev/null && Log "- Ring $ringcode $now" ||
+	aplay "$wav" &>/dev/null &&
+		Log "- On $schedule Ring $ringcode at $now" ||
 		Log "* Playing $wav at $now failed"
 	sleep .1
 	# Turn relay off
@@ -45,11 +50,13 @@ Ring(){ # $1:ringcode  I:$ringtones $relaypin $ampdelay $time  IO:$relayon
 
 Error(){ # $1:message  I:$i $line  IO:$error
 	((++error))
-	Log "* Line $i: '$line' - $1"
+	local l
+	[[ $i ]] && l="Line $1: '$line' -"
+	Log "* $l $1"
 }
 
-Button(){ # IO:$relayon
-	local button=$(gpio -g read $buttonpin)
+Button(){ # IO:$relayon $stop  I:$relaypin $tones $alarm $alarmlen
+	local button=$(gpio -g read $buttonpin) buttontime buttonlen
 	if [[ $button = 1 && $buttonold = 0 ]]
 	then # Button pressed in
 		# Record the time
@@ -57,14 +64,14 @@ Button(){ # IO:$relayon
 		# Wait for release of the button
 		gpio edge 22 rising
 		gpio -g wfi 22 falling
-		local buttonlen=$(($(date +%s)-buttontime))
+		buttonlen=$(($(date +%s)-buttontime))
 		if ((buttonlen>alarmlen))
 		then # Long enough to sound the alarm
 			((!relayon)) &&
 				gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
 			Log "- ALARM!" time
 			while :
-			do aplay "$alarm" &>/dev/null
+			do aplay "${tones[alarm]}" &>/dev/null
 			done &
 			stop=$!
 		else # Toggle relay
@@ -84,42 +91,76 @@ Button(){ # IO:$relayon
 	buttonold=$button
 }
 
-Bellcheck(){ # I:$xdates $ldates $ltimes $ntimes  IO:$nowold
-	local now=$(date +'%H:%M')
+Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') nonormal=0 day i numday
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
-	# Ignore Sat&Sun (6&7)
-	local numday=$(date '+%u') i day schedule
-	((numday>5)) && return
-	local today=$(date +'%Y-%m-%d')
+	for day in $noschooldates
+	do
+		if [[ "$noschooldates " == *" $today "* ]]
+		then
+			[[ $now = '00:00' ]] && Log "- $today No School day"
+			return
+		fi
+	done
 	for i in "${!specialdates[@]}"
 	do
 		if [[ "${specialdates[$i]} " == *" $today "* ]]
 		then
-			[[ $i = _ ]] && day='No School' || day="'$i'"
-			[[ $now = '00:00' ]] && Log "- $today $day day"
-			[[ $i = _ ]] && return
-			[[ "${schedules[$i]} " == *" $now "* ]] &&
-				Ring "${ringcodes[$now$i]}" && return
+			[[ $now = '00:00' ]] && Log "- $today '$i' day"
+			# Block normal day processing on uppercase Schedule code
+			[[ $i = ${i^} ]] && nonormal=1
+			[[ "${schedules[$i]} " == *" $now "* ]] && Ring $i
 		fi
 	done
-	[[ "${schedules[_]} " == *" $now "* ]] && Ring "${ringcodes[$now]}"
+	((nonormal)) && return
+	# Check Normal days
+	numday=$(date '+%u')
+	# Ignore weekends (days 6 and 7)
+	((numday>5)) && return
+	[[ "${schedules['_']} " == *" $now "* ]] && Ring _
 }
 
-# Read files into arrays
-mapfile -O 1 -t dates <"$ringdates"
-mapfile -O 1 -t times <"$ringtimes"
-
 # Globals
-declare -A schedules ringcodes specialdates
-normalschedule= nowold= relayon=0 buttonold=9 buttontime=9999999999 stop=
+declare -A schedules=() ringcodes=() specialdates=()
+noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i=
 
 Log "# Ring program initializing" time
-Log "> Amplifier switch-on delay $ampdelay s,  Button polling $pollres s"
+Log "> Amplifier switch-on delay ${ampdelay}s,  Button polling ${pollres}s"
+# for testing without gpio installed
+gpio=$(type -p gpio) || gpio(){ :;}
+
+# Setting up pins
+! gpio export $relaypin out &&
+	Log "* Setting up relay pin $relaypin for output failed" && exit 2 ||
+	Log "> Relay pin $relaypin used for output"
+! gpio export $buttonpin in &&
+	Log "* Setting up button pin $buttonpin for input failed" ||
+	Log "> Button pin $buttonpin used for input"
+gpio -g mode $buttonpin down
+gpio -g write $relaypin 1 && relayon=0 ||
+	Log "* Turning relay off failed"
+trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
+		QUIT EXIT
+
+Log "> Validating File information in '$ringtones'"
+error=0
+[[ ! -f "$ringtones" ]] && Error "No input file '$ringtones'" ||
+	mapfile -t tones <"$ringtones"
+alarm=$((${#tones[@]}-1))
+for i in "${!tones[@]}"
+do [[ ! -f ${tones[i]} ]] && Error "Not a file: '${tones[i]}'"
+done
+((alarm>9)) && Error "More than 10 files in $ringtones"
+((error==1)) && s= || s=s
+((error)) && Log "$error error$s in $ringtones"
+((errors+=error))
+
 Log "> Validating Time information in '$ringtimes'"
 error=0
-
+[[ ! -f "$ringtimes" ]] && Error "No input file '$ringtimes'" ||
+	mapfile -O 1 -t times <"$ringtimes"
 for i in "${!times[@]}"
 do # Validate and store times
 	line=${times[i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
@@ -133,18 +174,19 @@ do # Validate and store times
 	[[ $ringcode && ! $ringcode = ' ' ]] || ringcode=0
 	[[ ! $ringcode =~ ^[0-9]$ ]] &&
 		Error "Ringcode should be single digit number, not '$ringcode'"
-	((ringcode>${#ringtones[@]})) &&
-		Error "Ringcode is not defined, add .wav files to array 'ringtones'"
+	((ringcode>alarm)) &&
+		Error "Add a .wav on line $((ringcode+1)) of file $ringtones"
 	# Only store ringcodes that are not 0
-	[[ $schedule = _ ]] && schedule=
 	((ringcode)) && ringcodes[$time$schedule]=$ringcode
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtimes"
-errors=$error
+((errors+=error))
 
 Log "> Validating Date information in '$ringdates'"
 error=0
+[[ ! -f "$ringdates" ]] && Error "No input file '$ringdates'" ||
+	mapfile -O 1 -t dates <"$ringdates"
 for i in "${!dates[@]}"
 do # Validate and split dates
 	line=${dates[i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
@@ -154,52 +196,40 @@ do # Validate and split dates
 		Error "Invalid Date: '$date'"
 	[[ $empty && ! $empty = ' ' ]] &&
 		Error "There must be 1 space after the date, not '$empty'"
-	# Use underscore for No School (schedule is empty or space)
-	[[ $schedule && ! $schedule = ' ' ]] || schedule='_'
-	[[ ! $schedule =~ ^[_a-zA-Z]$ ]] &&
+	[[ $schedule && ! $schedule =~ ^[a-zA-Z]$ ]] &&
 		Error "Schedule should be a upper or lower case letter, not '$schedule'"
-	specialdates[$schedule]+=" $date"
+	[[ $schedule ]] && specialdates[$schedule]+=" $date" ||
+		noschooldates+=" $date"
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringdates"
+((errors+=error))
+
 for i in "${!schedules[@]}"
 do
-	[[ $i = _ ]] && s=Normal || s="'$i'"
-	Log "> $s schedule:${schedules[$i]}"
-done
-r="Ringcodes:"
-for i in "${!ringcodes[@]}"
-do r+=" $i=${ringcodes[$i]}"
-done
-Log "> $r"
-for i in "${!specialdates[@]}"
-do
-	[[ $i = _ ]] && d='No School' || d="'$i'"
-	Log "> $d dates:${specialdates[$i]}"
+	[[ $i = _ ]] && s='Normal schedule:' || s="'$i' schedule:"
+	for j in ${schedules[$i]}
+	do
+		c=${ringcodes[$j$i]}
+		[[ $c ]] && s+=" $j=$c" || s+=" $j"
+	done
+	Log "> $s"
 done
 
-((errors+=error))
+Log "> No School dates:$noschooldates"
+for i in "${!specialdates[@]}"
+do Log "> '$i' dates:${specialdates[$i]}"
+done
+
 ((errors==1)) && s= || s=s
 ((errors)) &&
 	Log "* Total of $errors error$s, not starting Ring program" && exit 1 ||
-	Log "> All Times and Dates valid"
-gpio(){ :;} # for testing without gpio installed
-
-# Setting up pins
-! gpio export $relaypin out &&
-	Log "* Setting up relay pin $relaypin for output failed" && exit 2 ||
-	Log "> Relay pin $relaypin used for output"
-! gpio export $buttonpin in &&
-	Log "* Setting up button pin $buttonpin for input failed" ||
-	Log "> Button pin $buttonpin used for input"
-gpio -g mode $buttonpin down
-gpio -g write $relaypin 1 && relayon=0 ||
-	Log "* Turning relay off failed"
-Log "# Ring program started" time
-trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
-		QUIT EXIT
+	Log "> All input files are valid"
+[[ $gpio ]] ||
+	Log "* Essential package 'wiringpi' (program 'gpio') not installed"
 
 # Main loop
+Log "# Ring program starting" time
 while :
 do
 	Button
