@@ -149,7 +149,7 @@ gpio -g write $relaypin 1 && relayon=0 ||
 trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
 		QUIT EXIT
 
-Log "> Validating File information in '$ringtones'"
+Log "> Validating File information in '$(readlink -e $ringtones)'"
 error=0
 [[ ! -f "$ringtones" ]] && Error "No input file '$ringtones'" ||
 	mapfile -t tones <"$ringtones"
@@ -162,7 +162,7 @@ done
 ((error)) && Log "$error error$s in $ringtones"
 ((errors+=error))
 
-Log "> Validating Time information in '$ringtimes'"
+Log "> Validating Time information in '$(readlink -e $ringtimes)'"
 error=0
 [[ ! -f "$ringtimes" ]] && Error "No input file '$ringtimes'" ||
 	mapfile -O 1 -t times <"$ringtimes"
@@ -188,7 +188,7 @@ done
 ((error)) && Log "$error error$s in $ringtimes"
 ((errors+=error))
 
-Log "> Validating Date information in '$ringdates'"
+Log "> Validating Date information in '$(readlink -e $ringdates)'"
 error=0
 [[ ! -f "$ringdates" ]] && Error "No input file '$ringdates'" ||
 	mapfile -O 1 -t dates <"$ringdates"
