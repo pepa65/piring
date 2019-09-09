@@ -7,6 +7,7 @@ set +v
 #   syntax & semantics, and when OK the program starts and keeps running,
 #   logging output to stdout.
 # Format:
+# - Lines with '#' as the first character are skipped as comments.
 # - ringdates: lines with 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s',
 #     where 's' is the alphabetical special Schedule code (uppercase cancels
 #     the Normal schedule, lowercase is in addition to the Normal schedule).
@@ -48,7 +49,7 @@ Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
 	sleep $ampdelay
 	# Ring bell
 	aplay "$wav" &>/dev/null &&
-		Log "- On $schedule Ring $ringcode at $now" ||
+		Log "- On $schedule Ringtone $ringcode at $now" ||
 		Log "* Playing $wav at $now failed"
 	sleep .1
 	# Turn relay off
@@ -59,7 +60,7 @@ Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
 Error(){ # $1:message  I:$i $line  IO:$error
 	((++error))
 	local l
-	[[ $i ]] && l="Line $1: '$line' -"
+	[[ $i ]] && l="Line $i: '$line' -"
 	Log "* $l $1"
 }
 
@@ -161,7 +162,11 @@ error=0
 	mapfile -t tones <"$ringtones"
 alarm=$((${#tones[@]}-1))
 for i in "${!tones[@]}"
-do [[ ! -f ${tones[i]} ]] && Error "Not a file: '${tones[i]}'"
+do
+	line=${tones[i]}
+	# Skip comments
+	[[ ${line:0:1} = '#' ]] && continue
+	[[ ! -f $line ]] && Error "Not a file"
 done
 ((alarm>9)) && Error "More than 10 files in $ringtones"
 ((error==1)) && s= || s=s
@@ -175,6 +180,8 @@ error=0
 for i in "${!times[@]}"
 do # Validate and store times
 	line=${times[i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
+	# Skip comments
+	[[ ${line:0:1} = '#' ]] && continue
 	! date -d "$time" &>/dev/null &&
 		Error "Invalid Time: '$time'"
 	# Use underscore for the Normal schedule (schedule is empty or space)
@@ -201,6 +208,8 @@ error=0
 for i in "${!dates[@]}"
 do # Validate and split dates
 	line=${dates[i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
+	# Skip comments
+	[[ ${line:0:1} = '#' ]] && continue
 	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
 		Error "Date format should be '20YY-DD-MM'"
 	! date -d "$date" &>/dev/null &&

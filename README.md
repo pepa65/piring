@@ -10,6 +10,7 @@ semantics, and when OK the program starts and keeps running, logging output to
 stdout.
 
 ### Format
+- Lines with `#` as the first character are skipped as comments.
 - **ringdates**: lines with `YYYY-MM-DD` (No School dates) or `YYYY-MM-DD s`,
   where `s` is the alphabetical special Schedule code (uppercase cancels the
   Normal schedule, lowercase is in addition to the Normal schedule).
