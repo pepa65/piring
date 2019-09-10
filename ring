@@ -226,22 +226,25 @@ done
 ((error)) && Log "* $error error$s in $ringdates"
 ((errors+=error))
 
+# Listing schedules
 for i in "${!schedules[@]}"
 do
 	[[ $i = _ ]] && s='Normal schedule:' || s="'$i' schedule:"
 	for j in ${schedules[$i]}
 	do
 		c=${ringcodes[$j$i]}
-		[[ $c ]] && s+=" $j=$c" || s+=" $j"
+		[[ $c ]] && s+=" $j_$c" || s+=" $j"
 	done
 	Log "> $s"
 done
 
+# Listing dates
 Log "> No School dates:$noschooldates"
 for i in "${!specialdates[@]}"
 do Log "> '$i' dates:${specialdates[$i]}"
 done
 
+# Reporting initial checks
 ((errors==1)) && s= || s=s
 ((errors)) &&
 	Log "* Total of $errors error$s, not starting Ring program" && exit 1 ||
