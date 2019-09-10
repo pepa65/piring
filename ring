@@ -101,7 +101,7 @@ Button(){ # IO:$relayon $stop  I:$relaypin $tones $alarm $alarmlen
 }
 
 Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') nonormal=0 day i numday
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') nonormal= day i numday
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
@@ -119,7 +119,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 		then
 			[[ $now = '00:00' ]] && Log "- $today '$i' day"
 			# Block normal day processing on uppercase Schedule code
-			[[ $i = ${i^} ]] && nonormal=1
+			[[ $i = ${i^} ]] && nonormal=1 || nonormal=0
 			[[ "${schedules[$i]} " == *" $now "* ]] && Ring $i
 		fi
 	done
@@ -128,6 +128,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	numday=$(date '+%u')
 	# Ignore weekends (days 6 and 7)
 	((numday>5)) && return
+	[[ -z $nonormal && $now = '00:00' ]] && Log "- $today Normal day"
 	[[ "${schedules['_']} " == *" $now "* ]] && Ring _
 }
 
