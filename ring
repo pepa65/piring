@@ -164,7 +164,8 @@ alarm=$((${#tones[@]}-1))
 for i in "${!tones[@]}"
 do
 	line=${tones[i]}
-	# Skip comments
+	# Skip empty lines and comments
+	[ X$line = X ] && continue
 	[[ ${line:0:1} = '#' ]] && continue
 	[[ ! -f $line ]] && Error "Not a file"
 done
@@ -180,7 +181,8 @@ error=0
 for i in "${!times[@]}"
 do # Validate and store times
 	line=${times[i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
-	# Skip comments
+	# Skip empty lines and comments
+	[ X$line = X ] && continue
 	[[ ${line:0:1} = '#' ]] && continue
 	! date -d "$time" &>/dev/null &&
 		Error "Invalid Time: '$time'"
@@ -208,7 +210,8 @@ error=0
 for i in "${!dates[@]}"
 do # Validate and split dates
 	line=${dates[i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
-	# Skip comments
+	# Skip empty lines and comments
+	[ X$line = X ] && continue
 	[[ ${line:0:1} = '#' ]] && continue
 	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
 		Error "Date format should be '20YY-DD-MM'"
