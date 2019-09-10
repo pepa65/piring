@@ -233,7 +233,7 @@ do
 	for j in ${schedules[$i]}
 	do
 		c=${ringcodes[$j$i]}
-		[[ $c ]] && s+=" $j_$c" || s+=" $j"
+		[[ $c ]] && s+=" ${j}_$c" || s+=" $j"
 	done
 	Log "> $s"
 done
