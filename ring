@@ -42,7 +42,7 @@ Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
-	wav=${tones[ringcode]}
+	wav=${tonefiles[ringcode]}
 	# Turn relay on
 	gpio -g write $relaypin 0 && relayon=1 ||
 		Log "* Turning relay on failed"
@@ -80,7 +80,7 @@ Button(){ # IO:$relayon $stop  I:$relaypin $tones $alarm $alarmlen
 				gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
 			Log "- ALARM!" time
 			while :
-			do aplay "${tones[alarm]}" &>/dev/null
+			do aplay "${tonefiles[alarm]}" &>/dev/null
 			done &
 			stop=$!
 		else # Toggle relay
@@ -134,7 +134,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 
 # Globals
 declare -A schedules=() ringcodes=() specialdates=()
-noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i=
+noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= tonefiles=()
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
 cd "${self%/*}"
@@ -161,14 +161,15 @@ Log "> Validating File information in '$(readlink -e $ringtones)'"
 error=0
 [[ ! -f "$ringtones" ]] && Error "No input file '$ringtones'" ||
 	mapfile -t tones <"$ringtones"
-alarm=$((${#tones[@]}-1))
 for i in "${!tones[@]}"
 do
 	line=${tones[i]}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	[[ ! -f $line ]] && Error "Not a file"
+	tonefiles+=($line)
 done
+alarm=$((${#tonefiles[@]}-1))
 ((alarm>9)) && Error "More than 10 files in $ringtones"
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtones"
