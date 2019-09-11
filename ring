@@ -227,6 +227,15 @@ done
 ((error)) && Log "* $error error$s in $ringdates"
 ((errors+=error))
 
+# Listing tonefiles
+Log "> Tonefiles: ${tonefiles[*]}"
+
+# Listing dates
+Log "> No School dates:$noschooldates"
+for i in "${!specialdates[@]}"
+do Log "> '$i' dates:${specialdates[$i]}"
+done
+
 # Listing schedules
 for i in "${!schedules[@]}"
 do
@@ -237,12 +246,6 @@ do
 		[[ $c ]] && s+=" ${j}_$c" || s+=" $j"
 	done
 	Log "> $s"
-done
-
-# Listing dates
-Log "> No School dates:$noschooldates"
-for i in "${!specialdates[@]}"
-do Log "> '$i' dates:${specialdates[$i]}"
 done
 
 # Reporting initial checks
