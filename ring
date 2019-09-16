@@ -28,7 +28,7 @@ set +v
 
 # Adjustables
 ringdates=ringdates ringtimes=ringtimes ringtones=ringtones
-relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3
+relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3 shutoffdelay=.5
 
 Log(){ # $1:message $2:time(or not)
 	local datetime
@@ -51,7 +51,7 @@ Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
 	aplay "$wav" &>/dev/null &&
 		Log "- On $schedule Ringtone $ringcode at $now" ||
 		Log "* Playing $wav at $now failed"
-	sleep .1
+	sleep $shutoffdelay
 	# Turn relay off
 	gpio -g write $relaypin 1 && relayon=0 ||
 		Log "* Turning relay off failed"
