@@ -1,8 +1,11 @@
+# First entry: Normal
 ringbell.wav
 # Elementary bell
 #ringtrumpet.wav
-#ringbelle.wav
+#ringbells.wav
 ringbell.wav
 # Open House ding
 ringding.wav
-ringalarm.wav
+# Last entry: alarm
+#ringearthquake.wav
+ringfire.wav
