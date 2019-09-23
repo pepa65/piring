@@ -2,15 +2,12 @@
 set +v
 # ring - Ring the bell at the right time and control the relay
 # Usage: ring
-#   Reads files 'ringdates', 'ringtimes' and 'ringtones' from the same
-#   directory as where the 'ring' script resides. These are checked for proper
-#   syntax & semantics, and when OK the program starts and keeps running,
-#   logging output to stdout.
+#   Reads files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms' from
+#   the same directory as where the 'ring' script resides. These are checked
+#   for proper syntax & semantics, and when OK the program starts and keeps
+#   running, logging output to stdout.
 # Format:
 # - Lines with '#' as the first character are skipped as comments.
-# - ringdates: lines with 'YYYY-MM-DD' (No School dates) or 'YYYY-MM-DD s',
-#     where 's' is the alphabetical special Schedule code (uppercase cancels
-#     the Normal schedule, lowercase is in addition to the Normal schedule).
 # - ringtimes: lines with 'HH:MMsr' (Normal schedule), 'HH:MMs' (Special
 #     schedule) or 'HH:MMsr', where 's' is the corresponding Special schedule
 #     code (or space for the Normal schedule) and 'r' is the Ringtone code
@@ -20,6 +17,13 @@ set +v
 #     location of a .wav file. The file in the first line is referred to by
 #     code '0' (the Normal ring tone), the next lines are '1' and up (the
 #     maximum is '9'), the last line is the special Alarm tone.
+# - ringdates (optional): lines with 'YYYY-MM-DD' (No School dates) or
+#     'YYYY-MM-DD s', where 's' is the alphabetical special Schedule code
+#     (uppercase cancels the Normal schedule, lowercase is in addition to the
+#      Normal schedule).
+# - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
+#     character is the number of seconds the button needs to be pressed for
+#     the .wav alarmtone in 'filename' to be played.
 # Workings: Every weekday the Normal schedule will ring and additional
 #   schedules with a lowercase schedule code. On Special dates with an
 #   uppercase Schedule code the Normal schedule will not ring.
@@ -27,8 +31,10 @@ set +v
 #   date [tmux]
 
 # Adjustables
-ringdates=ringdates ringtimes=ringtimes ringtones=ringtones
-relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 alarmlen=3 shutoffdelay=.5
+relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5
+# Input filenames
+ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
+ringalarms=ringalarms
 
 Log(){ # $1:message $2:time(or not)
 	local datetime
@@ -36,13 +42,13 @@ Log(){ # $1:message $2:time(or not)
 	fold -s <<<"$1 $datetime"
 }
 
-Ring(){ # $1:schedule  I:$tones $relaypin $ampdelay $time  IO:$relayon
+Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 	local schedule ringcode wav
 	[[ $1 = _ ]] && schedule='Normal schedule' || schedule="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
-	wav=${tonefiles[ringcode]}
+	wav=${tonefiles[$ringcode]}
 	# Turn relay on
 	gpio -g write $relaypin 0 && relayon=1 ||
 		Log "* Turning relay on failed"
@@ -64,8 +70,8 @@ Error(){ # $1:message  I:$i $line  IO:$error
 	Log "* $l $1"
 }
 
-Button(){ # IO:$relayon $stop  I:$relaypin $tones $alarm $alarmlen
-	local button=$(gpio -g read $buttonpin) buttontime buttonlen
+Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
+	local button=$(gpio -g read $buttonpin) buttontime buttonlen i toggle=1
 	if [[ $button = 1 && $buttonold = 0 ]]
 	then # Button pressed in
 		# Record the time
@@ -74,27 +80,33 @@ Button(){ # IO:$relayon $stop  I:$relaypin $tones $alarm $alarmlen
 		gpio edge 22 rising
 		gpio -g wfi 22 falling
 		buttonlen=$(($(date +%s)-buttontime))
-		if ((buttonlen>alarmlen))
-		then # Long enough to sound the alarm
-			((!relayon)) &&
-				gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
-			Log "- ALARM!" time
-			while :
-			do aplay "${tonefiles[alarm]}" &>/dev/null
-			done &
-			stop=$!
-		else # Toggle relay
-			if ((relayon))
-			then
-				# Stop the alarm if it is on
-				[[ $stop ]] && kill $stop && killall aplay
-				stop=
-				gpio -g write $relaypin 1 && relayon=0 && Log "- Amplifier off" time ||
-					Log "* Unable to switch off the relay"
-			else
-				gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time ||
-					Log "* Unable to switch on the relay"
+		for i in 9 8 7 6 5 4 3 2 1 0
+		do
+			# Skip non-defined ones
+			[[ -z ${alarmfiles[$i]} ]] && continue
+			if ((buttonlen>i))
+			then # Long enough to sound this alarm
+				((!relayon)) &&
+					gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
+				Log "- ALARM $i: ${alarmfiles[$i]}!" time
+				while :
+				do aplay "${alarmfiles[$i]}" &>/dev/null
+				done &
+				stop=$!
+				toggle=0
+				break # Don't try the shorter ones as well
 			fi
+		done
+		if ((toggle && relayon))
+		then # Just toggle, no alarm was called for
+			# Stop the alarm if it is on
+			[[ $stop ]] && kill $stop && killall aplay
+			stop=
+			gpio -g write $relaypin 1 && relayon=0 && Log "- Amplifier off" time ||
+				Log "* Unable to switch off the relay"
+		else
+			gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time ||
+				Log "* Unable to switch on the relay"
 		fi
 	fi
 	buttonold=$button
@@ -133,7 +145,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 }
 
 # Globals
-declare -A schedules=() ringcodes=() specialdates=()
+declare -A schedules=() ringcodes=() specialdates=() alarmfiles=()
 noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= tonefiles=()
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
@@ -157,31 +169,31 @@ gpio -g write $relaypin 1 && relayon=0 ||
 trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
 		QUIT EXIT
 
-Log "> Validating File information in '$(readlink -e $ringtones)'"
+Log "> Validating File information in '$(readlink -f $ringtones)'"
 error=0
 [[ ! -f "$ringtones" ]] && Error "No input file '$ringtones'" ||
-	mapfile -t tones <"$ringtones"
+	mapfile -O 1 -t tones <"$ringtones"
 for i in "${!tones[@]}"
 do
-	line=${tones[i]}
+	line=${tones[$i]}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	[[ ! -f $line ]] && Error "Not a file"
 	tonefiles+=($line)
 done
-alarm=$((${#tonefiles[@]}-1))
-((alarm>9)) && Error "More than 10 files in $ringtones"
+((maxcode=${#tonefiles[@]}-1))
+((maxcode>9)) && Error "More than 10 files in $ringtones"
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtones"
 ((errors+=error))
 
-Log "> Validating Time information in '$(readlink -e $ringtimes)'"
+Log "> Validating Time information in '$(readlink -f $ringtimes)'"
 error=0
 [[ ! -f "$ringtimes" ]] && Error "No input file '$ringtimes'" ||
 	mapfile -O 1 -t times <"$ringtimes"
 for i in "${!times[@]}"
 do # Validate and store times
-	line=${times[i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
+	line=${times[$i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	! date -d "$time" &>/dev/null &&
@@ -194,7 +206,7 @@ do # Validate and store times
 	[[ $ringcode && ! $ringcode = ' ' ]] || ringcode=0
 	[[ ! $ringcode =~ ^[0-9]$ ]] &&
 		Error "Ringcode should be single digit number, not '$ringcode'"
-	((ringcode>alarm)) &&
+	((ringcode>maxcode)) &&
 		Error "Add a .wav on line $((ringcode+1)) of file $ringtones"
 	# Only store ringcodes that are not 0
 	((ringcode)) && ringcodes[$time$schedule]=$ringcode
@@ -203,13 +215,12 @@ done
 ((error)) && Log "$error error$s in $ringtimes"
 ((errors+=error))
 
-Log "> Validating Date information in '$(readlink -e $ringdates)'"
+Log "> Validating Date information in '$(readlink -f $ringdates)'"
 error=0
-[[ ! -f "$ringdates" ]] && Error "No input file '$ringdates'" ||
-	mapfile -O 1 -t dates <"$ringdates"
+[[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
 for i in "${!dates[@]}"
 do # Validate and split dates
-	line=${dates[i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
+	line=${dates[$i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
@@ -227,8 +238,31 @@ done
 ((error)) && Log "* $error error$s in $ringdates"
 ((errors+=error))
 
+Log "> Validating Alarm information in '$(readlink -f $ringalarms)'"
+error=0
+[[ -f "$ringalarms" ]] && mapfile -O 1 -t alarms <"$ringalarms"
+for i in "${!alarms[@]}"
+do
+	line=${alarms[$i]}
+	# Skip empty lines and comments
+	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
+	secs=${line:0:1} file=${line:1}
+	[[ $secs != [0-9] ]] && Error "$secs is not a number from 0 to 9"
+	[[ ! -f $file ]] && Error "$file is not a file"
+	[[ ${alarmfiles[$secs]} ]] &&
+		Error "Alarm already present for press length $secs" ||
+		alarmfiles[$secs]=$file
+done
+((error==1)) && s= || s=s
+((error)) && Log "$error error$s in $ringalarms"
+((errors+=error))
+
 # Listing tonefiles
 Log "> Tonefiles: ${tonefiles[*]}"
+
+# Listing alarmfiles
+Log "> Alarmfiles:\
+$(for i in ${!alarmfiles[*]}; do echo -n " ${i}s:${alarmfiles[$i]}"; done)"
 
 # Listing dates
 Log "> No School dates:$noschooldates"
