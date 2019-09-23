@@ -1,11 +1,11 @@
 #!/bin/bash
 set +v
-# ring - Ring the bell at the right time and control the relay
+# ring - Controlling a school bell system from a Raspberry Pi
 # Usage: ring
-#   Reads files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms' from
-#   the same directory as where the 'ring' script resides. These are checked
-#   for proper syntax & semantics, and when OK the program starts and keeps
-#   running, logging output to stdout.
+#   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
+#   from the same directory as where the 'ring' script resides. These are
+#   checked for proper syntax & semantics, and when OK the program starts and
+#    keeps running, logging output to stdout.
 # Format:
 # - Lines with '#' as the first character are skipped as comments.
 # - ringtimes: lines with 'HH:MMsr' (Normal schedule), 'HH:MMs' (Special
@@ -16,14 +16,14 @@ set +v
 # - ringtones: lines with 'filename', where 'filename' is the filesystem
 #     location of a .wav file. The file in the first line is referred to by
 #     code '0' (the Normal ring tone), the next lines are '1' and up (the
-#     maximum is '9'), the last line is the special Alarm tone.
+#     maximum is '9').
 # - ringdates (optional): lines with 'YYYY-MM-DD' (No School dates) or
 #     'YYYY-MM-DD s', where 's' is the alphabetical special Schedule code
 #     (uppercase cancels the Normal schedule, lowercase is in addition to the
 #      Normal schedule).
 # - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
-#     character is the number of seconds the button needs to be pressed for
-#     the .wav alarmtone in 'filename' to be played.
+#     character is the minimum number of seconds the button needs to be
+#     pressed for the .wav alarmtone in 'filename' to be played.
 # Workings: Every weekday the Normal schedule will ring and additional
 #   schedules with a lowercase schedule code. On Special dates with an
 #   uppercase Schedule code the Normal schedule will not ring.
