@@ -234,7 +234,7 @@ do # Validate and store times
 	((ringcode>maxcode)) &&
 		Error "Add a .wav on line $((ringcode+1)) of file $ringtones"
 	# Skip obsolete schedules
-	[[ ${specialdates[$schedule]} ]] || continue
+	[[ ${specialdates[$schedule]} || $schedule = _ ]] || continue
 	schedules[$schedule]+=" $time"
 	# Only store ringcodes that are not 0
 	((ringcode)) && ringcodes[$time$schedule]=$ringcode
