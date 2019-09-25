@@ -187,6 +187,32 @@ done
 ((error)) && Log "$error error$s in $ringtones"
 ((errors+=error))
 
+Log "> Validating Date information in '$(readlink -f $ringdates)'"
+error=0
+today=$(date +'%Y-%m-%d')
+[[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
+for i in "${!dates[@]}"
+do # Validate and split dates
+	line=${dates[$i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
+	# Skip empty lines and comments
+	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
+	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
+		Error "Date format should be '20YY-DD-MM'"
+	! date -d "$date" &>/dev/null &&
+		Error "Invalid Date: '$date'"
+	[[ $empty && ! $empty = ' ' ]] &&
+		Error "There must be 1 space after the date, not '$empty'"
+	[[ $schedule && ! $schedule =~ ^[a-zA-Z]$ ]] &&
+		Error "Schedule should be a upper or lower case letter, not '$schedule'"
+	# Skip days in the past
+	[[ $date < $today ]] && continue
+	[[ $schedule ]] && specialdates[$schedule]+=" $date" ||
+		noschooldates+=" $date"
+done
+((error==1)) && s= || s=s
+((error)) && Log "* $error error$s in $ringdates"
+((errors+=error))
+
 Log "> Validating Time information in '$(readlink -f $ringtimes)'"
 error=0
 [[ ! -f "$ringtimes" ]] && Error "No input file '$ringtimes'" ||
@@ -202,40 +228,19 @@ do # Validate and store times
 	[[ -z $schedule || $schedule = ' ' ]] && schedule='_'
 	[[ ! $schedule =~ ^[_a-zA-Z]$ ]] &&
 		Error "Schedule should be a upper or lower case letter, not '$schedule'"
-	schedules[$schedule]+=" $time"
 	[[ $ringcode && ! $ringcode = ' ' ]] || ringcode=0
 	[[ ! $ringcode =~ ^[0-9]$ ]] &&
 		Error "Ringcode should be single digit number, not '$ringcode'"
 	((ringcode>maxcode)) &&
 		Error "Add a .wav on line $((ringcode+1)) of file $ringtones"
+	# Skip obsolete schedules
+	[[ ${specialdates[$schedule]} ]] || continue
+	schedules[$schedule]+=" $time"
 	# Only store ringcodes that are not 0
 	((ringcode)) && ringcodes[$time$schedule]=$ringcode
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtimes"
-((errors+=error))
-
-Log "> Validating Date information in '$(readlink -f $ringdates)'"
-error=0
-[[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
-for i in "${!dates[@]}"
-do # Validate and split dates
-	line=${dates[$i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
-	# Skip empty lines and comments
-	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
-	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
-		Error "Date format should be '20YY-DD-MM'"
-	! date -d "$date" &>/dev/null &&
-		Error "Invalid Date: '$date'"
-	[[ $empty && ! $empty = ' ' ]] &&
-		Error "There must be 1 space after the date, not '$empty'"
-	[[ $schedule && ! $schedule =~ ^[a-zA-Z]$ ]] &&
-		Error "Schedule should be a upper or lower case letter, not '$schedule'"
-	[[ $schedule ]] && specialdates[$schedule]+=" $date" ||
-		noschooldates+=" $date"
-done
-((error==1)) && s= || s=s
-((error)) && Log "* $error error$s in $ringdates"
 ((errors+=error))
 
 Log "> Validating Alarm information in '$(readlink -f $ringalarms)'"

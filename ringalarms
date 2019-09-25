@@ -1,4 +1,4 @@
-# 3 full seconds (count to 5): Fire alarm
-3ringfire.wav
-# 6 full seconds (count to 10): Earthquake alarm
-6ringearthquake.wav
+# 5 full seconds (count to 10): Fire alarm
+5ringfire.wav
+# 2 full seconds (count to 3): Earthquake alarm
+2ringearthquake.wav

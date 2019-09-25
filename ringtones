@@ -1,8 +1,7 @@
-# First entry: Normal
+# 0-First entry: Normal
 ringbell.wav
-# Elementary bell
+# 1-Elementary bell (now not used)
 #ringtrumpet.wav
-#ringbells.wav
-ringbell.wav
-# Open House ding
+ringbells.wav
+# 2-Open House ding
 ringding.wav
