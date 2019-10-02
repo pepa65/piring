@@ -38,7 +38,7 @@ ringalarms=ringalarms
 
 Log(){ # $1:message $2:time(or not)
 	local datetime
-	[[ $2 ]] && datetime="$(date +'%m/%d %H:%M')"
+	[[ $2 ]] && datetime=$(date +'%Y-%m-%d %H:%M')
 	fold -s <<<"$1 $datetime"
 }
 
@@ -117,11 +117,12 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
+	[[ $now = 00:00 ]] && daylog=1
 	for day in $noschooldates
 	do
 		if [[ "$noschooldates " == *" $today "* ]]
 		then
-			[[ $now = '00:00' ]] && Log "- $today No School day"
+			((daylog)) & daylog=0 && Log "- $today No School day"
 			return
 		fi
 	done
@@ -129,7 +130,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	do
 		if [[ "${specialdates[$i]} " == *" $today "* ]]
 		then
-			[[ $now = '00:00' ]] && Log "- $today '$i' day"
+			((daylog)) && daylog=0 && Log "- $today '$i' day"
 			# Block normal day processing on uppercase Schedule code
 			[[ $i = ${i^} ]] && nonormal=1 || nonormal=0
 			[[ "${schedules[$i]} " == *" $now "* ]] && Ring $i
@@ -140,13 +141,14 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	numday=$(date '+%u')
 	# Ignore weekends (days 6 and 7)
 	((numday>5)) && return
-	[[ -z $nonormal && $now = '00:00' ]] && Log "- $today Normal day"
+	[[ -z $nonormal ]] && ((daylog)) && daylog=0 && Log "- $today Normal day"
 	[[ "${schedules['_']} " == *" $now "* ]] && Ring _
 }
 
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() alarmfiles=()
 noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= tonefiles=()
+daylog=1
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
 cd "${self%/*}"
