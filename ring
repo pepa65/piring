@@ -130,7 +130,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	do
 		if [[ "${specialdates[$i]} " == *" $today "* ]]
 		then
-			((daylog)) && daylog=0 && Log "- $today '$i' day"
+			((daylog)) && daylog=0 && Log "- $today '$i' day:${schedules['_']}"
 			# Block normal day processing on uppercase Schedule code
 			[[ $i = ${i^} ]] && nonormal=1 || nonormal=0
 			[[ "${schedules[$i]} " == *" $now "* ]] && Ring $i
@@ -141,7 +141,8 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	numday=$(date '+%u')
 	# Ignore weekends (days 6 and 7)
 	((numday>5)) && return
-	[[ -z $nonormal ]] && ((daylog)) && daylog=0 && Log "- $today Normal day"
+	[[ -z $nonormal ]] && ((daylog)) && daylog=0 &&
+		Log "- $today Normal day:${schedules['_']}"
 	[[ "${schedules['_']} " == *" $now "* ]] && Ring _
 }
 
