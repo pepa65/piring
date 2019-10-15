@@ -122,7 +122,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	do
 		if [[ "$noschooldates " == *" $today "* ]]
 		then
-			((daylog)) & daylog=0 && Log "- $today No School day"
+			((daylog)) && daylog=0 && Log "- $today No School day"
 			return
 		fi
 	done
