@@ -138,7 +138,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	# Check Normal days
 	numday=$(date '+%u')
 	# Ignore weekends (days 6 and 7)
-	((numday>5)) && return
+	((numday>5)) && ((daylog)) && daylog=0 && Log "- $today $(date +%A)" && return
 	[[ -z $nonormal ]] && ((daylog)) && daylog=0 &&
 		Log "- $today Normal day:${schedules['_']}"
 	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
