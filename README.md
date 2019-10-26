@@ -1,5 +1,5 @@
 # piring
-Controlling a school bell system from a Raspberry Pi
+Control a school bell system from a Raspberry Pi
 
 ## Usage
 `ring`

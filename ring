@@ -1,6 +1,6 @@
 #!/bin/bash
 set +v
-# ring - Controlling a school bell system from a Raspberry Pi
+# ring - Control a school bell system from a Raspberry Pi
 # Usage: ring
 #   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
 #   from the same directory as where the 'ring' script resides. These are
