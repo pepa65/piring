@@ -122,22 +122,16 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	[[ $now = $nowold ]] && return
 	nowold=$now
 	[[ $now = 00:00 ]] && daylog=1
-	for day in $noschooldates
-	do
-		if [[ "$noschooldates " == *" $today "* ]]
-		then
-			((daylog)) && daylog=0 && Log "- $today No School day"
-			return
-		fi
-	done
+	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
+		Log "- $today No School day" && return
 	for i in "${!specialdates[@]}"
 	do
-		if [[ "${specialdates[$i]} " == *" $today "* ]]
+		if [[ "${specialdates[$i]} " = *" $today "* ]]
 		then
 			((daylog)) && daylog=0 && Log "- $today '$i' day:${schedules[$i]}"
 			# Block normal day processing on uppercase Schedule code
 			[[ $i = ${i^} ]] && nonormal=1 || nonormal=0
-			[[ "${schedules[$i]} " == *" $now "* ]] && Ring $i
+			[[ "${schedules[$i]} " = *" $now "* ]] && Ring $i
 		fi
 	done
 	((nonormal)) && return
@@ -147,7 +141,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	((numday>5)) && return
 	[[ -z $nonormal ]] && ((daylog)) && daylog=0 &&
 		Log "- $today Normal day:${schedules['_']}"
-	[[ "${schedules['_']} " == *" $now "* ]] && Ring _
+	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
 }
 
 # Globals
