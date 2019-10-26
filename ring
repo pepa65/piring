@@ -8,25 +8,26 @@ set +v
 #    keeps running, logging output to stdout.
 # Format:
 # - Lines with '#' as the first character are skipped as comments.
-# - ringtimes: lines with 'HH:MMsr' (Normal schedule), 'HH:MMs' (Special
-#     schedule) or 'HH:MMsr', where 's' is the corresponding Special schedule
-#     code (or space for the Normal schedule) and 'r' is the Ringtone code
-#     (which refers to a line in the 'ringtones' file that specifies a .wav
-#     file). When 'r' is the default '0' code, it can be left out.
-# - ringtones: lines with 'filename', where 'filename' is the filesystem
-#     location of a .wav file. The file in the first line is referred to by
-#     code '0' (the Normal ring tone), the next lines are '1' and up (the
-#     maximum is '9').
-# - ringdates (optional): lines with 'YYYY-MM-DD' (No School dates) or
-#     'YYYY-MM-DD s', where 's' is the alphabetical special Schedule code
-#     (uppercase cancels the Normal schedule, lowercase is in addition to the
-#      Normal schedule).
+# - ringtimes: lines with 'HH:MMsR' where 's' is Schedule (Normal schedule is
+#     space/empty, and Special schedule codes have an alphabetic character) and
+#     'R' is the Ringtone code (space or empty equals to '0', the default);
+#     The 'R' refers to a line with the .wav filename in the 'ringtones' file.
+#     All characters after position 7 are ignored as a comment.
+# - ringtones: lines with 'Rfilename', where 'R' is the numerical Ringtone code #     (0 is the Normal ringtone by default) and 'filename' is the filesystem
+#     location of a .wav file.
+# - ringdates (optional): lines of 'YYYY-MM-DDis' or 'YYYY-MM-DD/YYYY-MM-DDis'
+#     where 's' is space/empty for No-School dates or the alphabetical Special
+#     schedule code, and 'i' can be empty/space or '+' (means it is addition to
+#     the Normal schedule, otherwise it replaces the Normal schedule).
+#     The double date format is the beginning and end of a date range.
+#     All characters after position 12 resp. 23 are ignored as a comment.
 # - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
 #     character is the minimum number of seconds the button needs to be
-#     pressed for the .wav alarmtone in 'filename' to be played.
+#     pressed for the .wav alarmtone in 'filename' to be played. Multiple lines
+#     with the same 'S' are played in sequence, with the last one on a loop.
 # Workings: Every weekday the Normal schedule will ring and additional
-#   schedules with a lowercase schedule code. On Special dates with an
-#   uppercase Schedule code the Normal schedule will not ring.
+#   schedules (with '+' after the date). On dates with a Special schedule
+#   without a '+' the Normal schedule will not ring.
 # Required: wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay)
 #   date [tmux]
 
@@ -55,7 +56,7 @@ Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 	sleep $ampdelay
 	# Ring bell
 	aplay "$wav" &>/dev/null &&
-		Log "- On $schedule Ringtone $ringcode at $now" ||
+		Log "- Ring Ringtone $ringcode on $schedule at $now" ||
 		Log "* Playing $wav at $now failed"
 	sleep $shutoffdelay
 	# Turn relay off
@@ -72,8 +73,8 @@ Error(){ # $1:message  I:$i $line  IO:$error
 
 Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 	local button=$(gpio -g read $buttonpin) buttontime buttonlen i toggle=1
-	if [[ $button = 1 && $buttonold = 0 ]]
-	then # Button pressed in
+	if [[ -z $stop && $button = 1 && $buttonold = 0 ]]
+	then # Button just pressed and nothing playing already
 		# Record the time
 		buttontime=$(date +%s)
 		# Wait for release of the button
@@ -83,15 +84,19 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 		for i in 9 8 7 6 5 4 3 2 1 0
 		do
 			# Skip non-defined ones
-			[[ -z ${alarmfiles[$i]} ]] && continue
+			[[ ${alarmfiles[$i]} ]] || continue
 			if ((buttonlen>i))
 			then # Long enough to sound this alarm
 				((!relayon)) &&
 					gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
 				Log "- ALARM $i: ${alarmfiles[$i]}!" time
-				while :
-				do aplay "${alarmfiles[$i]}" &>/dev/null
-				done &
+				{
+					while :
+					do read line
+						[[ $line ]] && alarm=$line
+						aplay "$alarm" &>/dev/null
+					done <<<"${alarmfiles[$i]}"
+				} &
 				stop=$!
 				toggle=0
 				break # Don't try the shorter ones as well
@@ -100,8 +105,7 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 		if ((toggle && relayon))
 		then # Just toggle, no alarm was called for
 			# Stop the alarm if it is on
-			[[ $stop ]] && kill $stop && killall aplay
-			stop=
+			[[ $stop ]] && kill $stop && stop= && killall aplay
 			gpio -g write $relaypin 1 && relayon=0 && Log "- Amplifier off" time ||
 				Log "* Unable to switch off the relay"
 		else
@@ -147,9 +151,9 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 }
 
 # Globals
-declare -A schedules=() ringcodes=() specialdates=() alarmfiles=()
-noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= tonefiles=()
-daylog=1
+declare -A schedules=() ringcodes=() specialdates=()
+tonefiles=()
+noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= daylog=1
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
 cd "${self%/*}"
@@ -174,18 +178,17 @@ trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
 
 Log "> Validating File information in '$(readlink -f $ringtones)'"
 error=0
-[[ ! -f "$ringtones" ]] && Error "No input file '$ringtones'" ||
-	mapfile -O 1 -t tones <"$ringtones"
+[[ -f "$ringtones" ]] || Error "No input file '$ringtones'"
+mapfile -O 1 -t tones <"$ringtones"
 for i in "${!tones[@]}"
 do
-	line=${tones[$i]}
+	line=${tones[$i]} ringcode=${line:0:1} file=${line:1}
 	# Skip empty lines and comments
-	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
-	[[ ! -f $line ]] && Error "Not a file"
-	tonefiles+=($line)
+	[[ -z ${line// } || $ringcode = '#' ]] && continue
+	[[ $ringcode = [0-9] ]] || Error "Bad ringtone code: '$ringcode' (not 0-9)"
+	[[ -f $file ]] || Error "Not a file: '$file'"
+	tonefiles[$ringcode]=$file
 done
-((maxcode=${#tonefiles[@]}-1))
-((maxcode>9)) && Error "More than 10 files in $ringtones"
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtones"
 ((errors+=error))
@@ -196,21 +199,44 @@ today=$(date +'%Y-%m-%d')
 [[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
 for i in "${!dates[@]}"
 do # Validate and split dates
-	line=${dates[$i]} date=${line:0:10} empty=${line:10:1} schedule=${line:11:1}
+	line=${dates[$i]} date=${line:0:10} idate=${line:10:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
-	[[ ! $date =~ ^20[0-9][0-9]-[0-9][0-9]-[0-9][0-9]$ ]] &&
-		Error "Date format should be '20YY-DD-MM'"
-	! date -d "$date" &>/dev/null &&
-		Error "Invalid Date: '$date'"
-	[[ $empty && ! $empty = ' ' ]] &&
-		Error "There must be 1 space after the date, not '$empty'"
-	[[ $schedule && ! $schedule =~ ^[a-zA-Z]$ ]] &&
-		Error "Schedule should be a upper or lower case letter, not '$schedule'"
-	# Skip days in the past
-	[[ $date < $today ]] && continue
-	[[ $schedule ]] && specialdates[$schedule]+=" $date" ||
-		noschooldates+=" $date"
+	[[ $date = 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ||
+		Error "Date format should be '20YY-DD-MM', not: $date"
+	date -d "$date" &>/dev/null || Error "Invalid date: '$date'"
+	if [[ $idate = / ]]
+	then
+		date2=${line:11:10}
+		[[ $date2 = 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ||
+			Error "Date format should be '20YY-DD-MM', not: $date2"
+		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
+		[[ $date > $date2 ]] && Error "The first date can't be after the second"
+		idate=${line:21:1} schedule=${line:22:1}
+		[[ -z ${idate// } || $idate = + ]] ||
+			Error "After the dates only space or '+' allowed, not '$idate'"
+		[[ ${schedule// } && $schedule != [a-zA-Z] ]] &&
+			Error "Schedule should be alphabetic, not '$schedule'"
+		[[ ${schedule// } && $idate = '+' ]] && schedule+=+
+		while [[ ! $date > $date2 ]]
+		do
+			[[ $date < $today ]] && continue
+			[[ ${schedule// } ]] && specialdates[$schedule]+=" $date" ||
+				noschooldates+=" $date"
+			date=$(date -d "tomorrow $date" '+%Y-%m-%d')
+		done
+	else
+		[[ -z ${idate// } || $idate = + ]] ||
+			Error "After the date only space, '/' or '+' allowed, not '$idate'"
+		schedule=${line:11:1}
+		[[ ${schedule// } && $schedule != [a-zA-Z] ]] &&
+			Error "Schedule should be alphabetic, not '$schedule'"
+		# Skip days in the past
+		[[ $date < $today ]] && continue
+		[[ ${schedule// } && $idate = '+' ]] && schedule+=+
+		[[ ${schedule// } ]] && specialdates[$schedule]+=" $date" ||
+			noschooldates+=" $date"
+	fi
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringdates"
@@ -218,28 +244,27 @@ done
 
 Log "> Validating Time information in '$(readlink -f $ringtimes)'"
 error=0
-[[ ! -f "$ringtimes" ]] && Error "No input file '$ringtimes'" ||
-	mapfile -O 1 -t times <"$ringtimes"
+[[ -f "$ringtimes" ]] || Error "No input file '$ringtimes'"
+mapfile -O 1 -t times <"$ringtimes"
 for i in "${!times[@]}"
 do # Validate and store times
 	line=${times[$i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
-	! date -d "$time" &>/dev/null &&
-		Error "Invalid Time: '$time'"
+	date -d "$time" &>/dev/null || Error "Invalid Time: '$time'"
 	# Use underscore for the Normal schedule (schedule is empty or space)
-	[[ -z $schedule || $schedule = ' ' ]] && schedule='_'
-	[[ ! $schedule =~ ^[_a-zA-Z]$ ]] &&
+	[[ ${schedule// } ]] || schedule='_'
+	[[ $schedule = [_a-zA-Z] ]] ||
 		Error "Schedule should be a upper or lower case letter, not '$schedule'"
-	[[ $ringcode && ! $ringcode = ' ' ]] || ringcode=0
-	[[ ! $ringcode =~ ^[0-9]$ ]] &&
+	[[ ${ringcode// } ]] || ringcode=0
+	[[ $ringcode = [0-9] ]] ||
 		Error "Ringcode should be single digit number, not '$ringcode'"
-	((ringcode>maxcode)) &&
-		Error "Add a .wav on line $((ringcode+1)) of file $ringtones"
+	[[ ${tonefiles[$ringcode]} ]] ||
+		Error "Add a .wav filename preceded by '$ringcode' to $ringtones"
 	# Skip obsolete schedules
 	[[ ${specialdates[$schedule]} || $schedule = _ ]] || continue
 	schedules[$schedule]+=" $time"
-	# Only store ringcodes that are not 0
+	# Times with ringcode 0 are not special schedules
 	((ringcode)) && ringcodes[$time$schedule]=$ringcode
 done
 ((error==1)) && s= || s=s
@@ -247,7 +272,7 @@ done
 ((errors+=error))
 
 Log "> Validating Alarm information in '$(readlink -f $ringalarms)'"
-error=0
+error=0 j=0
 [[ -f "$ringalarms" ]] && mapfile -O 1 -t alarms <"$ringalarms"
 for i in "${!alarms[@]}"
 do
@@ -256,10 +281,8 @@ do
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	secs=${line:0:1} file=${line:1}
 	[[ $secs != [0-9] ]] && Error "$secs is not a number from 0 to 9"
-	[[ ! -f $file ]] && Error "$file is not a file"
-	[[ ${alarmfiles[$secs]} ]] &&
-		Error "Alarm already present for press length $secs" ||
-		alarmfiles[$secs]=$file
+	[[ -f $file ]] || Error "$file is not a file"
+	alarmfiles[$secs]+="$file"$'\n'
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringalarms"
@@ -269,8 +292,10 @@ done
 Log "> Tonefiles: ${tonefiles[*]}"
 
 # Listing alarmfiles
-Log "> Alarmfiles:\
-$(for i in ${!alarmfiles[*]}; do echo -n " ${i}s:${alarmfiles[$i]}"; done)"
+for i in ${!alarmfiles[@]}
+do
+	Log "> Alarmfiles $i seconds: ${alarmfiles[$i]//$'\n'/ }"
+done
 
 # Listing dates
 Log "> No School dates:$noschooldates"
