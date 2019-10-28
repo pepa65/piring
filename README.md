@@ -23,6 +23,8 @@ location of a .wav file.
 `YYYY-MM-DD/YYYY-MM-DDis` where `s` is space/empty for No-School dates or the
 alphabetical Special schedule code, and `i` can be empty/space or `+` (means it is addition to the Normal schedule, otherwise it replaces the Normal schedule).
 The double date format is the beginning and end of a date range.
+There can be multiple Special schedules for the same date, that all get
+rung, but if the same date is a No-School date, no ringing will occur.
 All characters after position 12 resp. 23 are ignored as a comment.
 - **ringalarms** (optional): lines with 'Sfilename', where 'S' at the first
 character is the minimum number of seconds the button needs to be

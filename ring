@@ -20,6 +20,8 @@ set +v
 #     schedule code, and 'i' can be empty/space or '+' (means it is addition to
 #     the Normal schedule, otherwise it replaces the Normal schedule).
 #     The double date format is the beginning and end of a date range.
+#     There can be multiple Special schedules for the same date, that all get
+#     rung, but if the same date is a No-School date, no ringing will occur.
 #     All characters after position 12 resp. 23 are ignored as a comment.
 # - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
 #     character is the minimum number of seconds the button needs to be
@@ -129,8 +131,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 		if [[ "${specialdates[$i]} " = *" $today "* ]]
 		then
 			((daylog)) && daylog=0 && Log "- $today '$i' day:${schedules[$i]}"
-			# Block normal day processing on uppercase Schedule code
-			[[ $i = ${i^} ]] && nonormal=1 || nonormal=0
+			[[ ${i:1} = + ]] && nonormal=0 || nonormal=1
 			[[ "${schedules[$i]} " = *" $now "* ]] && Ring $i
 		fi
 	done
