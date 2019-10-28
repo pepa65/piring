@@ -10,8 +10,10 @@ set +v
 # - Lines with '#' as the first character are skipped as comments.
 # - ringtimes: lines with 'HH:MMsR' where 's' is Schedule (Normal schedule is
 #     space/empty, and Special schedule codes have an alphabetic character) and
-#     'R' is the Ringtone code (space or empty equals to '0', the default);
-#     The 'R' refers to a line with the .wav filename in the 'ringtones' file.
+#     'R' is the Ringtone code. If 'R' is space/empty it means it is '0' (the
+#     default), a '-' means a mute for that time regardless of other schedules.
+#     In general, the 'R' matches the first position of lines with the filename
+#     of a .wav sound file in the 'ringtones' file.
 #     All characters after position 7 are ignored as a comment.
 # - ringtones: lines with 'Rfilename', where 'R' is the numerical Ringtone code #     (0 is the Normal ringtone by default) and 'filename' is the filesystem
 #     location of a .wav file.
@@ -20,16 +22,16 @@ set +v
 #     schedule code, and 'i' can be empty/space or '+' (means it is addition to
 #     the Normal schedule, otherwise it replaces the Normal schedule).
 #     The double date format is the beginning and end of a date range.
-#     There can be multiple Special schedules for the same date, that all get
-#     rung, but if the same date is a No-School date, no ringing will occur.
+#     There can be a single or multiple Special schedules for the same date,
+#     and all get rung, even if that date is also a No-School date.
 #     All characters after position 12 resp. 23 are ignored as a comment.
 # - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
 #     character is the minimum number of seconds the button needs to be
 #     pressed for the .wav alarmtone in 'filename' to be played. Multiple lines
 #     with the same 'S' are played in sequence, with the last one on a loop.
-# Workings: Every weekday the Normal schedule will ring and additional
-#   schedules (with '+' after the date). On dates with a Special schedule
-#   without a '+' the Normal schedule will not ring.
+# Workings: Every weekday (except on No-School days) the Normal schedule will
+#   ring and additional schedules (with '+' after the date). On dates with a
+#   Special schedule without a '+' the Normal schedule will not ring.
 # Required: wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay)
 #   date [tmux]
 
@@ -43,6 +45,13 @@ Log(){ # $1:message $2:time(or not)
 	local datetime
 	[[ $2 ]] && datetime=$(date +'%Y-%m-%d %H:%M')
 	fold -s <<<"$1 $datetime"
+}
+
+Error(){ # $1:message  I:$i $line  IO:$error
+	((++error))
+	local l
+	[[ $i ]] && l="Line $i: '$line' -"
+	Log "* $l $1"
 }
 
 Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
@@ -66,15 +75,8 @@ Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 		Log "* Turning relay off failed"
 }
 
-Error(){ # $1:message  I:$i $line  IO:$error
-	((++error))
-	local l
-	[[ $i ]] && l="Line $i: '$line' -"
-	Log "* $l $1"
-}
-
 Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
-	local button=$(gpio -g read $buttonpin) buttontime buttonlen i toggle=1
+	local button=$(gpio -g read $buttonpin) buttontime buttonlen s toggle=1
 	if [[ -z $stop && $button = 1 && $buttonold = 0 ]]
 	then # Button just pressed and nothing playing already
 		# Record the time
@@ -83,21 +85,21 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 		gpio edge 22 rising
 		gpio -g wfi 22 falling
 		buttonlen=$(($(date +%s)-buttontime))
-		for i in 9 8 7 6 5 4 3 2 1 0
+		for s in 9 8 7 6 5 4 3 2 1 0
 		do
 			# Skip non-defined ones
-			[[ ${alarmfiles[$i]} ]] || continue
-			if ((buttonlen>i))
+			[[ ${alarmfiles[$s]} ]] || continue
+			if ((buttonlen>s))
 			then # Long enough to sound this alarm
 				((!relayon)) &&
 					gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
-				Log "- ALARM $i: ${alarmfiles[$i]}!" time
+				Log "- ALARM $s: ${alarmfiles[$s]}!" time
 				{
 					while :
 					do read line
 						[[ $line ]] && alarm=$line
 						aplay "$alarm" &>/dev/null
-					done <<<"${alarmfiles[$i]}"
+					done <<<"${alarmfiles[$s]}"
 				} &
 				stop=$!
 				toggle=0
@@ -119,35 +121,39 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 }
 
 Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') nonormal= day i numday
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day s
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
 	[[ $now = 00:00 ]] && daylog=1
-	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
-		Log "- $today No School day" && return
-	for i in "${!specialdates[@]}"
+	# Check Special schedules
+	for s in "${!specialdates[@]}"
 	do
-		if [[ "${specialdates[$i]} " = *" $today "* ]]
+		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
-			((daylog)) && daylog=0 && Log "- $today '$i' day:${schedules[$i]}"
-			[[ ${i:1} = + ]] && nonormal=0 || nonormal=1
-			[[ "${schedules[$i]} " = *" $now "* ]] && Ring $i
+			((daylog)) && daylog=0 && Log "- $today '$s' day:${schedules[$s]}"
+			((ringcodes[$now${s:0:1}]==10)) &&
+				Log "- $today '$s' skipping:$now" && return
+			[[ ${s:1} != + ]] && skipnormal=1
+			[[ "${schedules[$s]} " = *" $now "* ]] && Ring ${s:0:1} && return
 		fi
 	done
-	((nonormal)) && return
-	# Check Normal days
-	numday=$(date '+%u')
+	((skipnormal)) && return
+	# No-School dates trump Normal days
+	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
+		Log "- $today No School day" && return
 	# Ignore weekends (days 6 and 7)
-	if ((numday>5))
+	if (($(date '+%u')>5))
 	then
 		((daylog)) && daylog=0 && Log "- $today $(date +%A)"
 		return
 	fi
-	[[ -z $nonormal ]] && ((daylog)) && daylog=0 &&
+	# Check Normal days
+	((!skipnormal && daylog)) && daylog=0 &&
 		Log "- $today Normal day:${schedules['_']}"
 	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
 }
+
 
 # Globals
 declare -A schedules=() ringcodes=() specialdates=()
@@ -230,7 +236,6 @@ do # Validate and split dates
 		schedule=${line:11:1}
 		[[ ${schedule// } && $schedule != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$schedule'"
-		# Skip days in the past
 		[[ $date < $today ]] && continue
 		[[ ${schedule// } && $idate = '+' ]] && schedule+=+
 		[[ ${schedule// } ]] && specialdates[$schedule]+=" $date" ||
@@ -254,17 +259,18 @@ do # Validate and store times
 	# Use underscore for the Normal schedule (schedule is empty or space)
 	[[ ${schedule// } ]] || schedule='_'
 	[[ $schedule = [_a-zA-Z] ]] ||
-		Error "Schedule should be a upper or lower case letter, not '$schedule'"
+		Error "Schedule should be alphabetical, not '$schedule'"
 	[[ ${ringcode// } ]] || ringcode=0
-	[[ $ringcode = [0-9] ]] ||
-		Error "Ringcode should be single digit number, not '$ringcode'"
-	[[ ${tonefiles[$ringcode]} ]] ||
+	[[ $ringcode = [-0-9] ]] ||
+		Error "Ringcode should be single digit or '-', not '$ringcode'"
+	[[ $ringcode != - && -z ${tonefiles[$ringcode]} ]] &&
 		Error "Add a .wav filename preceded by '$ringcode' to $ringtones"
-	# Skip obsolete schedules
-	[[ ${specialdates[$schedule]} || $schedule = _ ]] || continue
+	# Skip if no dates with this schedule and it is not a Normal schedule
+	[[ -z ${specialdates[$schedule]} && -z ${specialdates[$schedule+]} &&
+			$schedule != _ ]] && continue
 	schedules[$schedule]+=" $time"
-	# Times with ringcode 0 are not special schedules
-	((ringcode)) && ringcodes[$time$schedule]=$ringcode
+	[[ $ringcode = - ]] && ringcode=10
+	ringcodes[$time$schedule]=$ringcode
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtimes"
@@ -291,27 +297,31 @@ done
 Log "> Tonefiles: ${tonefiles[*]}"
 
 # Listing alarmfiles
-for i in ${!alarmfiles[@]}
+for l in ${!alarmfiles[@]}
 do
-	Log "> Alarmfiles $i seconds: ${alarmfiles[$i]//$'\n'/ }"
+	Log "> Alarmfiles $l seconds: ${alarmfiles[$l]//$'\n'/ }"
 done
 
 # Listing dates
 Log "> No School dates:$noschooldates"
-for i in "${!specialdates[@]}"
-do Log "> '$i' dates:${specialdates[$i]}"
+for s in "${!specialdates[@]}"
+do Log "> '$s' dates:${specialdates[$s]}"
 done
 
 # Listing schedules
-for i in "${!schedules[@]}"
+for s in "${!schedules[@]}"
 do
-	[[ $i = _ ]] && s='Normal schedule:' || s="'$i' schedule:"
-	for j in ${schedules[$i]}
+	[[ $s = _ ]] && scheds='Normal schedule:' || scheds="'$s' schedule:"
+	for t in ${schedules[$s]}
 	do
-		c=${ringcodes[$j$i]}
-		[[ $c ]] && s+=" ${j}_$c" || s+=" $j"
+		r=${ringcodes[$t$s]}
+		case $r in
+			10) scheds+=" ${t}-" ;;
+			0) scheds+=" $t" ;;
+			*) scheds+=" ${t},$r"
+		esac
 	done
-	Log "> $s"
+	Log "> $scheds"
 done
 
 # Reporting initial checks
