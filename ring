@@ -1,5 +1,5 @@
 #!/bin/bash
-set +v
+set +xv
 # ring - Control a school bell system from a Raspberry Pi
 # Usage: ring
 #   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
@@ -55,8 +55,8 @@ Error(){ # $1:message  I:$i $line  IO:$error
 }
 
 Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
-	local schedule ringcode wav
-	[[ $1 = _ ]] && schedule='Normal schedule' || schedule="schedule '$1'"
+	local sched ringcode wav
+	[[ $1 = _ ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
@@ -67,7 +67,7 @@ Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 	sleep $ampdelay
 	# Ring bell
 	aplay "$wav" &>/dev/null &&
-		Log "- Ring Ringtone $ringcode on $schedule at $now" ||
+		Log "- Ring Ringtone $ringcode on $sched at $now" ||
 		Log "* Playing $wav at $now failed"
 	sleep $shutoffdelay
 	# Turn relay off
@@ -80,26 +80,26 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 	if [[ -z $stop && $button = 1 && $buttonold = 0 ]]
 	then # Button just pressed and nothing playing already
 		# Record the time
-		buttontime=$(date +%s)
+		buttontime=$(date +'%s')
 		# Wait for release of the button
 		gpio edge 22 rising
 		gpio -g wfi 22 falling
-		buttonlen=$(($(date +%s)-buttontime))
-		for s in 9 8 7 6 5 4 3 2 1 0
+		buttonlen=$(($(date +'%s')-buttontime))
+		for l in 9 8 7 6 5 4 3 2 1 0
 		do
 			# Skip non-defined ones
-			[[ ${alarmfiles[$s]} ]] || continue
-			if ((buttonlen>s))
+			[[ ${alarmfiles[$l]} ]] || continue
+			if ((buttonlen>l))
 			then # Long enough to sound this alarm
 				((!relayon)) &&
 					gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
-				Log "- ALARM $s: ${alarmfiles[$s]}!" time
+				Log "- ALARM $l: ${alarmfiles[$l]}!" time
 				{
 					while :
 					do read line
 						[[ $line ]] && alarm=$line
 						aplay "$alarm" &>/dev/null
-					done <<<"${alarmfiles[$s]}"
+					done <<<"${alarmfiles[$l]}"
 				} &
 				stop=$!
 				toggle=0
@@ -131,11 +131,12 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	do
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
-			((daylog)) && daylog=0 && Log "- $today '$s' day:${schedules[$s]}"
+			((daylog)) && daylog=0 &&
+				Log "- $today '$s${inaddition[$s]}' day:${schedules[$s]}"
 			((ringcodes[$now${s:0:1}]==10)) &&
 				Log "- $today '$s' skipping:$now" && return
-			[[ ${s:1} != + ]] && skipnormal=1
-			[[ "${schedules[$s]} " = *" $now "* ]] && Ring ${s:0:1} && return
+			[[ -z ${inaddition[$s]} ]] && skipnormal=1
+			[[ "${schedules[$s]} " = *" $now "* ]] && Ring $s && return
 		fi
 	done
 	((skipnormal)) && return
@@ -143,20 +144,19 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
 	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
 		Log "- $today No School day" && return
 	# Ignore weekends (days 6 and 7)
-	if (($(date '+%u')>5))
+	if (($(date +'%u')>5))
 	then
-		((daylog)) && daylog=0 && Log "- $today $(date +%A)"
+		((daylog)) && daylog=0 && Log "- $today $(date +'%A')"
 		return
 	fi
 	# Check Normal days
-	((!skipnormal && daylog)) && daylog=0 &&
-		Log "- $today Normal day:${schedules['_']}"
+	((daylog)) && daylog=0 && Log "- $today Normal day:${schedules['_']}"
 	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
 }
 
 
 # Globals
-declare -A schedules=() ringcodes=() specialdates=()
+declare -A schedules=() ringcodes=() specialdates=() inaddition=()
 tonefiles=()
 noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= daylog=1
 self=$(readlink -e "$0")
@@ -217,28 +217,26 @@ do # Validate and split dates
 			Error "Date format should be '20YY-DD-MM', not: $date2"
 		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
 		[[ $date > $date2 ]] && Error "The first date can't be after the second"
-		idate=${line:21:1} schedule=${line:22:1}
+		idate=${line:21:1} s=${line:22:1}
 		[[ -z ${idate// } || $idate = + ]] ||
 			Error "After the dates only space or '+' allowed, not '$idate'"
-		[[ ${schedule// } && $schedule != [a-zA-Z] ]] &&
-			Error "Schedule should be alphabetic, not '$schedule'"
-		[[ ${schedule// } && $idate = '+' ]] && schedule+=+
+		[[ ${s// } && $s != [a-zA-Z] ]] &&
+			Error "Schedule should be alphabetic, not '$s'"
 		while [[ ! $date > $date2 ]]
 		do
 			[[ $date < $today ]] && continue
-			[[ ${schedule// } ]] && specialdates[$schedule]+=" $date" ||
+			[[ ${s// } ]] && inaddition[$s]=+ specialdates[$s]+=" $date" ||
 				noschooldates+=" $date"
-			date=$(date -d "tomorrow $date" '+%Y-%m-%d')
+			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
 	else
 		[[ -z ${idate// } || $idate = + ]] ||
 			Error "After the date only space, '/' or '+' allowed, not '$idate'"
-		schedule=${line:11:1}
-		[[ ${schedule// } && $schedule != [a-zA-Z] ]] &&
-			Error "Schedule should be alphabetic, not '$schedule'"
+		s=${line:11:1}
+		[[ ${s// } && $s != [a-zA-Z] ]] &&
+			Error "Schedule should be alphabetic, not '$s'"
 		[[ $date < $today ]] && continue
-		[[ ${schedule// } && $idate = '+' ]] && schedule+=+
-		[[ ${schedule// } ]] && specialdates[$schedule]+=" $date" ||
+		[[ ${s// } ]] && inaddition[$s]=+ specialdates[$s]+=" $date" ||
 			noschooldates+=" $date"
 	fi
 done
@@ -252,25 +250,23 @@ error=0
 mapfile -O 1 -t times <"$ringtimes"
 for i in "${!times[@]}"
 do # Validate and store times
-	line=${times[$i]} time=${line:0:5} schedule=${line:5:1} ringcode=${line:6:1}
+	line=${times[$i]} time=${line:0:5} s=${line:5:1} ringcode=${line:6:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	date -d "$time" &>/dev/null || Error "Invalid Time: '$time'"
 	# Use underscore for the Normal schedule (schedule is empty or space)
-	[[ ${schedule// } ]] || schedule='_'
-	[[ $schedule = [_a-zA-Z] ]] ||
-		Error "Schedule should be alphabetical, not '$schedule'"
+	[[ ${s// } ]] || s='_'
+	[[ $s = [_a-zA-Z] ]] || Error "Schedule should be alphabetical, not '$s'"
 	[[ ${ringcode// } ]] || ringcode=0
 	[[ $ringcode = [-0-9] ]] ||
 		Error "Ringcode should be single digit or '-', not '$ringcode'"
 	[[ $ringcode != - && -z ${tonefiles[$ringcode]} ]] &&
 		Error "Add a .wav filename preceded by '$ringcode' to $ringtones"
 	# Skip if no dates with this schedule and it is not a Normal schedule
-	[[ -z ${specialdates[$schedule]} && -z ${specialdates[$schedule+]} &&
-			$schedule != _ ]] && continue
-	schedules[$schedule]+=" $time"
+	[[ -z ${specialdates[$s]} && $s != _ ]] && continue
+	schedules[$s]+=" $time"
 	[[ $ringcode = - ]] && ringcode=10
-	ringcodes[$time$schedule]=$ringcode
+	ringcodes[$time$s]=$ringcode
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringtimes"
@@ -284,10 +280,10 @@ do
 	line=${alarms[$i]}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
-	secs=${line:0:1} file=${line:1}
-	[[ $secs != [0-9] ]] && Error "$secs is not a number from 0 to 9"
-	[[ -f $file ]] || Error "$file is not a file"
-	alarmfiles[$secs]+="$file"$'\n'
+	l=${line:0:1} file=${line:1}
+	[[ $l != [0-9] ]] && Error "Not a number from 0 to 9: '$l'"
+	[[ -f $file ]] || Error "Not a file: '$file'"
+	alarmfiles[$l]+="$file"$'\n'
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "$error error$s in $ringalarms"
