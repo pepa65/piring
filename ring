@@ -41,7 +41,7 @@ relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5
 ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
 ringalarms=ringalarms
 
-Log(){ # $1:message $2:time(or not)
+Log(){ # $1:message $2:time(optional)
 	local datetime
 	[[ $2 ]] && datetime=$(date +'%Y-%m-%d %H:%M')
 	fold -s <<<"$1 $datetime"
@@ -75,8 +75,8 @@ Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 		Log "* Turning relay off failed"
 }
 
-Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
-	local button=$(gpio -g read $buttonpin) buttontime buttonlen s toggle=1
+Button(){ # IO:$relayon $stop $buttonold  I:$relaypin $alarmfiles
+	local button=$(gpio -g read $buttonpin) buttontime buttonlen s toggle=1 l
 	if [[ -z $stop && $button = 1 && $buttonold = 0 ]]
 	then # Button just pressed and nothing playing already
 		# Record the time
@@ -120,8 +120,9 @@ Button(){ # IO:$relayon $stop  I:$relaypin $alarmfiles
 	buttonold=$button
 }
 
-Bellcheck(){ # I:$noschooldates $specialdates $schedules IO:$nowold
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day s
+Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
+		# IO:$nowold $daylog
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
@@ -218,26 +219,26 @@ do # Validate and split dates
 		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
 		[[ $date > $date2 ]] && Error "The first date can't be after the second"
 		idate=${line:21:1} s=${line:22:1}
-		[[ -z ${idate// } || $idate = + ]] ||
+		[[ ${idate// } && $idate != + ]] &&
 			Error "After the dates only space or '+' allowed, not '$idate'"
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		while [[ ! $date > $date2 ]]
 		do
 			[[ $date < $today ]] && continue
-			[[ ${s// } ]] && inaddition[$s]=+ specialdates[$s]+=" $date" ||
-				noschooldates+=" $date"
+			[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
+			[[ $idate = + ]] && inaddition[$s]=+
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
 	else
-		[[ -z ${idate// } || $idate = + ]] ||
+		[[ ${idate// } && $idate != + ]] &&
 			Error "After the date only space, '/' or '+' allowed, not '$idate'"
 		s=${line:11:1}
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		[[ $date < $today ]] && continue
-		[[ ${s// } ]] && inaddition[$s]=+ specialdates[$s]+=" $date" ||
-			noschooldates+=" $date"
+		[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
+		[[ $idate = + ]] && inaddition[$s]=+
 	fi
 done
 ((error==1)) && s= || s=s
