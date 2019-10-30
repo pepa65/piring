@@ -122,7 +122,7 @@ Button(){ # IO:$relayon $stop $buttonold  I:$relaypin $alarmfiles
 
 Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 		# IO:$nowold $daylog
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day rung=0
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
@@ -132,15 +132,16 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 	do
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
-			((daylog)) && daylog=0 &&
+			((daylog && ++daylog)) &&
 				Log "- $today '$s${inaddition[$s]}' day:${schedules[$s]}"
 			((ringcodes[$now${s:0:1}]==10)) &&
 				Log "- $today '$s' skipping:$now" && return
 			[[ -z ${inaddition[$s]} ]] && skipnormal=1
-			[[ "${schedules[$s]} " = *" $now "* ]] && Ring $s && return
+			[[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
-	((skipnormal)) && return
+	((daylog>1 && skipnormal)) && daylog=0
+	((rung || skipnormal)) && return
 	# No-School dates trump Normal days
 	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
 		Log "- $today No School day" && return
