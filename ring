@@ -1,11 +1,12 @@
 #!/bin/bash
 set +xv
 # ring - Control a school bell system from a Raspberry Pi
-# Usage: ring
+# Usage: ring [-k|--keyboard]
+#          -k/--keyboard:  use keyboard instead of the button
 #   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
 #   from the same directory as where the 'ring' script resides. These are
 #   checked for proper syntax & semantics, and when OK the program starts and
-#    keeps running, logging output to stdout.
+#   keeps running, logging output to stdout.
 # Format:
 # - Lines with '#' as the first character are skipped as comments.
 # - ringtimes: lines with 'HH:MMsR' where 's' is Schedule (Normal schedule is
@@ -27,16 +28,16 @@ set +xv
 #     All characters after position 12 resp. 23 are ignored as a comment.
 # - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
 #     character is the minimum number of seconds the button needs to be
-#     pressed for the .wav alarmtone in 'filename' to be played. Multiple lines
-#     with the same 'S' are played in sequence, with the last one on a loop.
+#     pressed for the .wav alarmtone in 'filename' to be played. If 'S' is '0'
+#     then the tone is played whenever the amp is switched on.
 # Workings: Every weekday (except on No-School days) the Normal schedule will
 #   ring and additional schedules (with '+' after the date). On dates with a
 #   Special schedule without a '+' the Normal schedule will not ring.
 # Required: wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay)
-#   date [tmux]
+#   date [control:tmux] [keyboard:evdev grep sudo coreutils(ls head)]
 
 # Adjustables
-relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5
+relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5 key=LEFTSHIFT
 # Input filenames
 ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
 ringalarms=ringalarms
@@ -54,7 +55,8 @@ Error(){ # $1:message  I:$i $line  IO:$error
 	Log "* $l $1"
 }
 
-Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
+Ring(){ #I:$now $tonefiles $relaypin $buttonpin $ampdelay $time $shutoffdelay
+		# IO:$relayon  $1:schedule
 	local sched ringcode wav
 	[[ $1 = _ ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
@@ -75,49 +77,62 @@ Ring(){ # $1:schedule  I:$tonefiles $relaypin $ampdelay $time  IO:$relayon
 		Log "* Turning relay off failed"
 }
 
-Button(){ # IO:$relayon $stop $buttonold  I:$relaypin $alarmfiles
-	local button=$(gpio -g read $buttonpin) buttontime buttonlen s toggle=1 l
-	if [[ -z $stop && $button = 1 && $buttonold = 0 ]]
-	then # Button just pressed and nothing playing already
-		# Record the time
-		buttontime=$(date +'%s')
-		# Wait for release of the button
-		gpio edge 22 rising
-		gpio -g wfi 22 falling
-		buttonlen=$(($(date +'%s')-buttontime))
-		for l in 9 8 7 6 5 4 3 2 1 0
-		do
-			# Skip non-defined ones
-			[[ ${alarmfiles[$l]} ]] || continue
-			if ((buttonlen>l))
-			then # Long enough to sound this alarm
-				((!relayon)) &&
-					gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
-				Log "- ALARM $l: ${alarmfiles[$l]}!" time
-				{
-					while :
-					do read line
-						[[ $line ]] && alarm=$line
-						aplay "$alarm" &>/dev/null
-					done <<<"${alarmfiles[$l]}"
-				} &
-				stop=$!
-				toggle=0
-				break # Don't try the shorter ones as well
+Button(){ # IO:$relayon $playing $buttonold  I:$relaypin $alarmfiles $kbd
+	local button buttontime buttonlen len
+	if [[ $kbd ]]
+	then
+		sudo evtest --query $kbd EV_KEY KEY_$key
+		(($?==10)) && button=1 || button=0
+	else
+		button=$(gpio -g read $buttonpin)
+	fi
+	if [[ $button = 1 && $buttonold = 0 ]]
+	then # Button just pressed
+		buttonold=1
+		if [[ -z $playing ]]
+		then # Nothing playing already
+			# Record the time
+			buttontime=$(date +'%s')
+			# Wait for release of the button
+			if [[ $kbd ]]
+			then
+				while sudo evtest --query $kbd EV_KEY KEY_$key; (($?==10))
+				do :
+				done
+			else
+				gpio edge 22 rising
+				gpio -g wfi 22 falling
 			fi
-		done
-		if ((toggle && relayon))
-		then # Just toggle, no alarm was called for
-			# Stop the alarm if it is on
-			[[ $stop ]] && kill $stop && stop= && killall aplay
+			buttonlen=$(($(date +'%s')-buttontime))
+			for len in 9 8 7 6 5 4 3 2 1 0
+			do
+				# Skip non-defined ones
+				[[ ${alarmfiles[$len]} ]] || continue
+				if ((buttonlen>=len))
+				then # Long enough to sound this alarm
+					((!relayon)) &&
+						gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time
+					Log "- ALARM $len: ${alarmfiles[$len]}" time
+					aplay -q "${alarmfiles[$len]}" &
+					playing=$!
+					return # Lower len will always match
+				fi
+			done
+		fi
+		# Just toggle: button just pressed and ala no alarm was called for
+		if ((relayon))
+		then
+			# Stop the alarm if it is playing
+			[[ $playing ]] && kill -9 $playing && wait 2>/dev/null && playing=
 			gpio -g write $relaypin 1 && relayon=0 && Log "- Amplifier off" time ||
 				Log "* Unable to switch off the relay"
 		else
 			gpio -g write $relaypin 0 && relayon=1 && Log "- Amplifier on" time ||
 				Log "* Unable to switch on the relay"
 		fi
+	else
+		buttonold=$button
 	fi
-	buttonold=$button
 }
 
 Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
@@ -159,15 +174,16 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() inaddition=()
-tonefiles=()
-noschooldates= nowold= relayon=0 buttonold=9 stop= errors=0 i= daylog=1
+tonefiles=() kbd= gpio= test=0
+noschooldates= nowold= relayon=0 buttonold=9 playing= errors=0 i= daylog=1
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
 cd "${self%/*}"
+[[ $1 = -t || $1 = --test ]] && test=1
 
 Log "# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s,  Button polling ${pollres}s"
-# for testing without gpio installed
+# For testing without gpio installed
 gpio=$(type -p gpio) || gpio(){ :;}
 
 # Setting up pins
@@ -183,7 +199,7 @@ gpio -g write $relaypin 1 && relayon=0 ||
 trap "gpio -g write $relaypin 1; gpio unexportall; Log; Log '# Quit' time" \
 		QUIT EXIT
 
-Log "> Validating File information in '$(readlink -f $ringtones)'"
+Log "- Validating File information in '$(readlink -f $ringtones)'"
 error=0
 [[ -f "$ringtones" ]] || Error "No input file '$ringtones'"
 mapfile -O 1 -t tones <"$ringtones"
@@ -197,10 +213,10 @@ do
 	tonefiles[$ringcode]=$file
 done
 ((error==1)) && s= || s=s
-((error)) && Log "$error error$s in $ringtones"
+((error)) && Log "* $error error$s in $ringtones"
 ((errors+=error))
 
-Log "> Validating Date information in '$(readlink -f $ringdates)'"
+Log "- Validating Date information in '$(readlink -f $ringdates)'"
 error=0
 today=$(date +'%Y-%m-%d')
 [[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
@@ -246,7 +262,7 @@ done
 ((error)) && Log "* $error error$s in $ringdates"
 ((errors+=error))
 
-Log "> Validating Time information in '$(readlink -f $ringtimes)'"
+Log "- Validating Time information in '$(readlink -f $ringtimes)'"
 error=0
 [[ -f "$ringtimes" ]] || Error "No input file '$ringtimes'"
 mapfile -O 1 -t times <"$ringtimes"
@@ -271,10 +287,10 @@ do # Validate and store times
 	ringcodes[$time$s]=$ringcode
 done
 ((error==1)) && s= || s=s
-((error)) && Log "$error error$s in $ringtimes"
+((error)) && Log "* $error error$s in $ringtimes"
 ((errors+=error))
 
-Log "> Validating Alarm information in '$(readlink -f $ringalarms)'"
+Log "- Validating Alarm information in '$(readlink -f $ringalarms)'"
 error=0 j=0
 [[ -f "$ringalarms" ]] && mapfile -O 1 -t alarms <"$ringalarms"
 for i in "${!alarms[@]}"
@@ -285,10 +301,11 @@ do
 	l=${line:0:1} file=${line:1}
 	[[ $l != [0-9] ]] && Error "Not a number from 0 to 9: '$l'"
 	[[ -f $file ]] || Error "Not a file: '$file'"
-	alarmfiles[$l]+="$file"$'\n'
+	[[ ${alarmfiles[$l]} ]] && Error "More than one alarm for $l seconds" ||
+		alarmfiles[$l]=$file
 done
 ((error==1)) && s= || s=s
-((error)) && Log "$error error$s in $ringalarms"
+((error)) && Log "* $error error$s in $ringalarms"
 ((errors+=error))
 
 # Listing tonefiles
@@ -325,10 +342,23 @@ done
 # Reporting initial checks
 ((errors==1)) && s= || s=s
 ((errors)) &&
-	Log "* Total of $errors error$s, not starting Ring program" && exit 1 ||
-	Log "> All input files are valid"
+	Log "* Total of $errors error$s, not starting Ring program" && exit 1
+Log "> All input files are valid"
+
 [[ $gpio ]] ||
 	Log "* Essential package 'wiringpi' (program 'gpio') not installed"
+
+if [[ $1 = -k || $1 = --keyboard ]]
+then
+	! sudo -v && Log "* Privileges insufficient for using keyboard" && exit 2
+	if [[ -d /dev/input/by-path ]]
+	then
+		kbd=$(ls -l /dev/input/by-path |grep kbd |head -1) kbd=${kbd##*/}
+		[[ $kbd ]] && kbd=/dev/input/$kbd &&
+			Log "> Use $key on the keyboard instead of the button"
+	fi
+	[[ $kbd ]] || Log "* Using keyboard not possible"
+fi
 
 # Main loop
 Log "# Ring program starting" time

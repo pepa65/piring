@@ -1,15 +1,6 @@
 # 2 full seconds (count to 3): Earthquake alarm
-2ringearthquake.wav
-2ringearthquake-en.wav
-2ringearthquake-th.wav
-2ringearthquake.wav
+2ringearthquake-full.wav
 # 5 full seconds (count to 8): Fire alarm
-5ringfire.wav
-5ringfire-en.wav
-5ringfire-th.wav
-5ringfire.wav
+5ringfire-full.wav
 # 8 full seconds (count to 12): Lockdown alarm
-8ringlockdown.wav
-8ringlockdown-en.wav
-8ringlockdown-th.wav
-8ringlockdown.wav
+8ringlockdown-full.wav

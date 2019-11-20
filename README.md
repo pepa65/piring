@@ -2,7 +2,10 @@
 Control a school bell system from a Raspberry Pi
 
 ## Usage
-`ring`
+```
+ring [-k|--keyboard]
+  -k/--keyboard:  Use the keyboard instead of the button
+```
 
 Reads input files `ringtimes`, `ringtones`, `ringdates` and `ringalarms` from
 the same directory as where the `ring` script resides. These are checked for
@@ -30,8 +33,8 @@ all get rung, even if that date is also a No-School date.
 All characters after position 12 resp. 23 are ignored as a comment.
 - **ringalarms** (optional): lines with `Sfilename`, where `S` at the first
 character is the minimum number of seconds the button needs to be
-pressed for the `.wav` alarmtone in `filename` to be played. Multiple lines
-with the same `S` are played in sequence, with the last one on a loop.
+pressed for the `.wav` alarmtone in `filename` to be played. If 'S' is '0'
+then the tone is played whenever the amp is switched on.
 
 ### Workings
 Every weekday (except on No-School days) the Normal schedule will ring and
@@ -39,7 +42,8 @@ additional schedules (with `+` after the date). On dates with a Special
 schedule without a `+` the Normal schedule will not ring.
 
 ## Required
-wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay) date [tmux]
+wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay) date
+[control:tmux] [keyboard:evdev grep sudo coreutils(ls head)]
 
 ## Deployment
 To have it autostart on reboot, the script `ringatreboot` can be called from
