@@ -148,9 +148,9 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
 			((daylog && ++daylog)) &&
-				Log "- $today '$s${inaddition[$s]}' day:${schedules[$s]}"
+				Log "> $today '$s${inaddition[$s]}' day:${schedules[$s]}"
 			((ringcodes[$now${s:0:1}]==10)) &&
-				Log "- $today '$s' skipping:$now" && return
+				Log "> $today '$s' skipping:$now" && return
 			[[ -z ${inaddition[$s]} ]] && skipnormal=1
 			[[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
@@ -159,15 +159,15 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 	((rung || skipnormal)) && return
 	# No-School dates trump Normal days
 	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
-		Log "- $today No School day" && return
+		Log "> $today No School day" && return
 	# Ignore weekends (days 6 and 7)
 	if (($(date +'%u')>5))
 	then
-		((daylog)) && daylog=0 && Log "- $today $(date +'%A')"
+		((daylog)) && daylog=0 && Log "> $today $(date +'%A')"
 		return
 	fi
 	# Check Normal days
-	((daylog)) && daylog=0 && Log "- $today Normal day:${schedules['_']}"
+	((daylog)) && daylog=0 && Log "> $today Normal day:${schedules['_']}"
 	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
 }
 
@@ -314,7 +314,8 @@ Log "> Tonefiles: ${tonefiles[*]}"
 # Listing alarmfiles
 for l in ${!alarmfiles[@]}
 do
-	Log "> Alarmfiles $l seconds: ${alarmfiles[$l]//$'\n'/ }"
+	((l==1)) && s= || s=s
+	Log "> Alarmfile $l second$s: ${alarmfiles[$l]//$'\n'/ }"
 done
 
 # Listing dates
