@@ -37,7 +37,7 @@ set +xv
 #   date [control:tmux] [keyboard:evdev grep sudo coreutils(ls head)]
 
 # Adjustables
-relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5 key=LEFTSHIFT
+relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5 key=LEFTCTRL
 # Input filenames
 ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
 ringalarms=ringalarms
