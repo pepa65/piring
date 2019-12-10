@@ -158,8 +158,11 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 	((daylog>1 && skipnormal)) && daylog=0
 	((rung || skipnormal)) && return
 	# No-School dates trump Normal days
-	[[ "$noschooldates " = *" $today "* ]] && ((daylog)) && daylog=0 &&
-		Log "> $today No School day" && return
+	if [[ "$noschooldates " = *" $today "* ]]
+	then
+		((daylog)) && daylog=0 && Log "> $today No School day"
+		return
+	fi
 	# Ignore weekends (days 6 and 7)
 	if (($(date +'%u')>5))
 	then
