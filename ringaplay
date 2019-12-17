@@ -12,8 +12,8 @@ type=$(cut -d' ' -f2 <<<"$file")
 relaypin=14
 gpio export $relaypin out
 gpio -g write $relaypin 0
-sleep 3
-aplay "$1"
+sleep 2
+aplay "$@"
 sleep .5
 gpio -g write $relaypin 1
 
