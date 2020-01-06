@@ -245,7 +245,6 @@ do # Validate and split dates
 			Error "Schedule should be alphabetic, not '$s'"
 		while [[ ! $date > $date2 ]]
 		do
-			[[ $date < $today ]] && continue
 			[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
 			[[ $idate = + ]] && inaddition[$s]=+
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
