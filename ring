@@ -1,8 +1,8 @@
 #!/bin/bash
 set +xv
 # ring - Control a school bell system from a Raspberry Pi
-# Usage: ring [-k|--keyboard]
-#          -k/--keyboard:  use keyboard instead of the button
+# Usage: ring [-k|--keyboard [<device>]]
+#          -k/--keyboard:  use keyboard [device] instead of the button
 #   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
 #   from the same directory as where the 'ring' script resides. These are
 #   checked for proper syntax & semantics, and when OK the program starts and
@@ -16,7 +16,8 @@ set +xv
 #     In general, the 'R' matches the first position of lines with the filename
 #     of a .wav sound file in the 'ringtones' file.
 #     All characters after position 7 are ignored as a comment.
-# - ringtones: lines with 'Rfilename', where 'R' is the numerical Ringtone code #     (0 is the Normal ringtone by default) and 'filename' is the filesystem
+# - ringtones: lines with 'Rfilename', where 'R' is the numerical Ringtone code
+#     (0 is the Normal ringtone by default) and 'filename' is the filesystem
 #     location of a .wav file.
 # - ringdates (optional): lines of 'YYYY-MM-DDis' or 'YYYY-MM-DD/YYYY-MM-DDis'
 #     where 's' is space/empty for No-School dates or the alphabetical Special
@@ -38,6 +39,8 @@ set +xv
 
 # Adjustables
 relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5 key=LEFTCTRL
+# Constants
+ev=10 skip=99
 # Input filenames
 ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
 ringalarms=ringalarms
@@ -77,12 +80,13 @@ Ring(){ #I:$now $tonefiles $relaypin $buttonpin $ampdelay $time $shutoffdelay
 		Log "* Turning relay off failed"
 }
 
-Button(){ # IO:$relayon $playing $buttonold  I:$relaypin $alarmfiles $kbd
+Button(){ # IO:$relayon $playing $buttonold
+		# I:$relaypin $alarmfiles $kbd $ev $buttonpin
 	local button buttontime buttonlen len
 	if [[ $kbd ]]
 	then
 		sudo evtest --query $kbd EV_KEY KEY_$key
-		(($?==10)) && button=1 || button=0
+		(($?==ev)) && button=1 || button=0
 	else
 		button=$(gpio -g read $buttonpin)
 	fi
@@ -96,12 +100,12 @@ Button(){ # IO:$relayon $playing $buttonold  I:$relaypin $alarmfiles $kbd
 			# Wait for release of the button
 			if [[ $kbd ]]
 			then
-				while sudo evtest --query $kbd EV_KEY KEY_$key; (($?==10))
+				while sudo evtest --query $kbd EV_KEY KEY_$key; (($?==ev))
 				do :
 				done
 			else
-				gpio edge 22 rising
-				gpio -g wfi 22 falling
+				gpio edge $buttonpin rising
+				gpio -g wfi $buttonpin falling
 			fi
 			buttonlen=$(($(date +'%s')-buttontime))
 			for len in 9 8 7 6 5 4 3 2 1 0
@@ -115,7 +119,7 @@ Button(){ # IO:$relayon $playing $buttonold  I:$relaypin $alarmfiles $kbd
 					Log "- ALARM $len: ${alarmfiles[$len]}" time
 					aplay -q "${alarmfiles[$len]}" &
 					playing=$!
-					return # Lower len will always match
+					return # Otherwise lower len will always match
 				fi
 			done
 		fi
@@ -135,8 +139,8 @@ Button(){ # IO:$relayon $playing $buttonold  I:$relaypin $alarmfiles $kbd
 	fi
 }
 
-Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
-		# IO:$nowold $daylog
+Bellcheck(){ # IO:$nowold $daylog
+		# I:$noschooldates $specialdates $schedules $inaddition $ringcodes $skip
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day rung=0
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
@@ -149,7 +153,7 @@ Bellcheck(){ # I:$noschooldates $specialdates $schedules $inaddition $ringcodes
 		then
 			((daylog && ++daylog)) &&
 				Log "> $today '$s${inaddition[$s]}' day:${schedules[$s]}"
-			((ringcodes[$now${s:0:1}]==10)) &&
+			((ringcodes[$now${s:0:1}]==skip)) &&
 				Log "> $today '$s' skipping:$now" && return
 			[[ -z ${inaddition[$s]} ]] && skipnormal=1
 			[[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
@@ -285,7 +289,8 @@ do # Validate and store times
 	# Skip if no dates with this schedule and it is not a Normal schedule
 	[[ -z ${specialdates[$s]} && $s != _ ]] && continue
 	schedules[$s]+=" $time"
-	[[ $ringcode = - ]] && ringcode=10
+	# Skip - codes
+	[[ $ringcode = - ]] && ringcode=$skip
 	ringcodes[$time$s]=$ringcode
 done
 ((error==1)) && s= || s=s
@@ -334,7 +339,7 @@ do
 	do
 		r=${ringcodes[$t$s]}
 		case $r in
-			10) scheds+=" ${t}-" ;;
+			$skip) scheds+=" $t-" ;;
 			0) scheds+=" $t" ;;
 			*) scheds+=" ${t},$r"
 		esac
@@ -354,13 +359,14 @@ Log "> All input files are valid"
 if [[ $1 = -k || $1 = --keyboard ]]
 then
 	! sudo -v && Log "* Privileges insufficient for using keyboard" && exit 2
-	if [[ -d /dev/input/by-path ]]
+	[[ $2 && -c $2 ]] && kbd=$2 || Log "* Invalid keyboard device: $2"
+	if [[ -d /dev/input/by-path && -z $kbd ]]
 	then
 		kbd=$(ls -l /dev/input/by-path |grep kbd |head -1) kbd=${kbd##*/}
-		[[ $kbd ]] && kbd=/dev/input/$kbd &&
-			Log "> Use $key on the keyboard instead of the button"
+		[[ $kbd ]] && kbd=/dev/input/$kbd
 	fi
-	[[ $kbd ]] || Log "* Using keyboard not possible"
+	[[ $kbd ]] && Log "> Use $key on the keyboard instead of the button" ||
+		Log "* Using keyboard not possible"
 fi
 
 # Main loop

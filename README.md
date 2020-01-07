@@ -3,8 +3,8 @@ Control a school bell system from a Raspberry Pi
 
 ## Usage
 ```
-ring [-k|--keyboard]
-  -k/--keyboard:  Use the keyboard instead of the button
+ring [-k|--keyboard [<device>]]
+  -k/--keyboard:  Use the keyboard [device] instead of the button
 ```
 
 Reads input files `ringtimes`, `ringtones`, `ringdates` and `ringalarms` from
