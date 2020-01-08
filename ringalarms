@@ -1,3 +1,5 @@
+## Sfilename (S: minimum number of seconds to press; filename: .wav-file)
+
 # 2 full seconds (count to 3): Earthquake alarm
 2ringearthquake-full.wav
 # 5 full seconds (count to 8): Fire alarm

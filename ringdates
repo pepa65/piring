@@ -1,7 +1,11 @@
+## YYYY-MM-DDis | YYYY-MM-DD/YYYY-MM-DDis (= date | start/end-date)
+## i: [+] (= in addition to Normal schedule, otherwise replaces Normal)
+## s: space|empty (= No-School) | alphabetical (= Special schedule code)
+
 2019-08-20
 2019-09-06 L Late start
 2019-09-19+H Open House (additional)
-2019-10-02 S Prolonged lunch
+2019-10-02 S Prolonged lunch: mute 12:40+12:44
 2019-10-04 L Late start
 2019-10-14
 2019-10-15   In-service day
@@ -12,11 +16,12 @@
 2019-11-26   Pole-moving (no power)
 2019-12-05
 2019-12-10
-2019-12-18+l Shortened lunch, bell at 12:20
+2019-12-18+l Shortened lunch, extra bell at 12:20
 2019-12-23/2020-01-06   Christmas break
+2020-01-09 S
 2020-01-10 L Late start
-2020-01-10+m Late start plus shortened lunch, bell at 12:44
-2020-01-14+l Shortened lunch, bell at 12:20
+2020-01-10 m Late start shortened lunch, extra bell at 12:44
+2020-01-14+l Shortened lunch, extra bell at 12:20
 2020-01-15   In-service day
 2020-02-07 L Late start
 2020-02-14

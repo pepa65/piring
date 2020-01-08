@@ -40,7 +40,7 @@ set +xv
 # Adjustables
 relaypin=14 buttonpin=22 ampdelay=3 pollres=.1 shutoffdelay=.5 key=LEFTCTRL
 # Constants
-ev=10 skip=99
+ev=10
 # Input filenames
 ringtimes=ringtimes ringtones=ringtones ringdates=ringdates
 ringalarms=ringalarms
@@ -61,7 +61,7 @@ Error(){ # $1:message  I:$i $line  IO:$error
 Ring(){ #I:$now $tonefiles $relaypin $buttonpin $ampdelay $time $shutoffdelay
 		# IO:$relayon  $1:schedule
 	local sched ringcode wav
-	[[ $1 = _ ]] && sched='Normal schedule' || sched="schedule '$1'"
+	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
@@ -123,7 +123,7 @@ Button(){ # IO:$relayon $playing $buttonold
 				fi
 			done
 		fi
-		# Just toggle: button just pressed and ala no alarm was called for
+		# Just toggle: button just pressed and no alarm was called for
 		if ((relayon))
 		then
 			# Stop the alarm if it is playing
@@ -140,22 +140,22 @@ Button(){ # IO:$relayon $playing $buttonold
 }
 
 Bellcheck(){ # IO:$nowold $daylog
-		# I:$noschooldates $specialdates $schedules $inaddition $ringcodes $skip
+		# I:$noschooldates $specialdates $schedules $additional $ringcodes $muted
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day rung=0
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
 	[[ $now = 00:00 ]] && daylog=1
-	# Check Special schedules
+	# Check all Special schedules
 	for s in "${!specialdates[@]}"
 	do
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
 			((daylog && ++daylog)) &&
-				Log "> $today '$s${inaddition[$s]}' day:${schedules[$s]}"
-			((ringcodes[$now${s:0:1}]==skip)) &&
-				Log "> $today '$s' skipping:$now" && return
-			[[ -z ${inaddition[$s]} ]] && skipnormal=1
+				Log "> $today '$s${additional[$s]}' day:${schedules[$s]}"
+			[[ "${muted[$now]} " = *" $today "* ]] &&
+				Log "> $today muting: $now" && return
+			[[ -z ${additional[$s]} ]] && skipnormal=1
 			[[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
@@ -180,7 +180,7 @@ Bellcheck(){ # IO:$nowold $daylog
 
 
 # Globals
-declare -A schedules=() ringcodes=() specialdates=() inaddition=()
+declare -A schedules=() ringcodes=() specialdates=() additional=() muted=()
 tonefiles=() kbd= gpio= test=0
 noschooldates= nowold= relayon=0 buttonold=9 playing= errors=0 i= daylog=1
 self=$(readlink -e "$0")
@@ -243,25 +243,25 @@ do # Validate and split dates
 		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
 		[[ $date > $date2 ]] && Error "The first date can't be after the second"
 		idate=${line:21:1} s=${line:22:1}
-		[[ ${idate// } && $idate != + ]] &&
+		[[ ${idate// } && $idate != '+' ]] &&
 			Error "After the dates only space or '+' allowed, not '$idate'"
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		while [[ ! $date > $date2 ]]
 		do
 			[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
-			[[ $idate = + ]] && inaddition[$s]=+
+			[[ $idate = '+' ]] && additional[$s]='+'
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
 	else
-		[[ ${idate// } && $idate != + ]] &&
+		[[ ${idate// } && $idate != '+' ]] &&
 			Error "After the date only space, '/' or '+' allowed, not '$idate'"
 		s=${line:11:1}
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		[[ $date < $today ]] && continue
 		[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
-		[[ $idate = + ]] && inaddition[$s]=+
+		[[ $idate = '+' ]] && additional[$s]='+'
 	fi
 done
 ((error==1)) && s= || s=s
@@ -283,15 +283,15 @@ do # Validate and store times
 	[[ $s = [_a-zA-Z] ]] || Error "Schedule should be alphabetical, not '$s'"
 	[[ ${ringcode// } ]] || ringcode=0
 	[[ $ringcode = [-0-9] ]] ||
-		Error "Ringcode should be single digit or '-', not '$ringcode'"
-	[[ $ringcode != - && -z ${tonefiles[$ringcode]} ]] &&
+		Error "Ringcode should be single digit, space or '-', not '$ringcode'"
+	[[ $ringcode != '-' && -z ${tonefiles[$ringcode]} ]] &&
 		Error "Add a .wav filename preceded by '$ringcode' to $ringtones"
 	# Skip if no dates with this schedule and it is not a Normal schedule
-	[[ -z ${specialdates[$s]} && $s != _ ]] && continue
-	schedules[$s]+=" $time"
-	# Skip - codes
-	[[ $ringcode = - ]] && ringcode=$skip
-	ringcodes[$time$s]=$ringcode
+	[[ -z ${specialdates[$s]} && $s != '_' ]] && continue
+	# Mute '-' ringcodes
+	[[ $ringcode = '-' ]] &&
+		muted[$time]=${specialdates[$s]} schedules[$s]+=" $time" ||
+		ringcodes[$time$s]=$ringcode schedules[$s]+=" $time"
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringtimes"
@@ -334,12 +334,12 @@ done
 # Listing schedules
 for s in "${!schedules[@]}"
 do
-	[[ $s = _ ]] && scheds='Normal schedule:' || scheds="'$s' schedule:"
+	[[ $s = '_' ]] && scheds='Normal schedule:' || scheds="'$s' schedule:"
 	for t in ${schedules[$s]}
 	do
 		r=${ringcodes[$t$s]}
 		case $r in
-			$skip) scheds+=" $t-" ;;
+			'') scheds+=" $t-" ;;
 			0) scheds+=" $t" ;;
 			*) scheds+=" ${t},$r"
 		esac

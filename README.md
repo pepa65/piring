@@ -26,7 +26,8 @@ code (0 is the Normal ringtone by default) and 'filename' is the filesystem
 location of a .wav file.
 - **ringdates** (optional): lines of `YYYY-MM-DDis` or
 `YYYY-MM-DD/YYYY-MM-DDis` where `s` is space/empty for No-School dates or the
-alphabetical Special schedule code, and `i` can be empty/space or `+` (means it is addition to the Normal schedule, otherwise it replaces the Normal schedule).
+alphabetical Special schedule code, and `i` can be empty/space or `+` (means in
+addition to the Normal schedule, otherwise it replaces the Normal schedule).
 The double date format is the beginning and end of a date range.
 There can be a single or multiple Special schedules for the same date, and
 all get rung, even if that date is also a No-School date.
