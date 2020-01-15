@@ -1,6 +1,6 @@
 ## YYYY-MM-DDis | YYYY-MM-DD/YYYY-MM-DDis (= date | start/end-date)
 ## i: [+] (= in addition to Normal schedule, otherwise replaces Normal)
-## s: space|empty (= No-School) | alphabetical (= Special schedule code)
+## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
 
 2019-08-20
 2019-09-06 L Late start

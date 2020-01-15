@@ -342,7 +342,7 @@ do
 done
 
 # Listing dates
-Log "> No School dates:$nobellsdates"
+Log "> No-Bells dates:$nobellsdates"
 for s in "${!specialdates[@]}"
 do Log "> '$s' dates:${specialdates[$s]}"
 done
