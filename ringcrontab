@@ -1,4 +1,4 @@
-## Add to user's crontab by 'crontab -e'
+## Add to user's crontab through 'crontab -e'
 
 SHELL=/bin/bash
 

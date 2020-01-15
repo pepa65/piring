@@ -1,39 +1,49 @@
 #!/bin/bash
 set +xv
-# ring - Control a school bell system from a Raspberry Pi
+# ring - Control a school sound system from a Raspberry Pi
 # Usage: ring [-k|--keyboard [<device>]]
 #          -k/--keyboard:  use keyboard [device] instead of the button
-#   Reads input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms'
+# Function:
+#   The Normal schedule will ring on every weekday, unless that day is
+#   marked as a No-Bells day. Special schedules will always ring on any
+#   scheduled day, but the Normal schedule will be cancelled, unless at least
+#   one of the Special schedules is an Additional schedule (having a `+` after
+#   the date in `ringdates`).
+#   The (optional) file `ringdates` determines the dates for the Special
+#   schedules and the No-Bells days, the time schedules are defined in the file
+#   `ringtimes`, and the file `ringtones` contains the names of the
+#   corresponding .wav-files.
+#   The optional file `ringalarms` defines what happens when the button is
+#   pushed for a certain minimum length, which can be used for alarms.
+#
+#   Input files 'ringtimes', 'ringtones', 'ringdates' and 'ringalarms' are read
 #   from the same directory as where the 'ring' script resides. These are
 #   checked for proper syntax & semantics, and when OK the program starts and
 #   keeps running, logging output to stdout.
-# Format:
+# Format inputfiles:
 # - Lines with '#' as the first character are skipped as comments.
-# - ringtimes: lines with 'HH:MMsR' where 's' is Schedule (Normal schedule is
-#     space/empty, and Special schedule codes have an alphabetic character) and
-#     'R' is the Ringtone code. If 'R' is space/empty it means it is '0' (the
-#     default), a '-' means a mute for that time regardless of other schedules.
-#     In general, the 'R' matches the first position of lines with the filename
-#     of a .wav sound file in the 'ringtones' file.
-#     All characters after position 7 are ignored as a comment.
-# - ringtones: lines with 'Rfilename', where 'R' is the numerical Ringtone code
-#     (0 is the Normal ringtone by default) and 'filename' is the filesystem
-#     location of a .wav file.
-# - ringdates (optional): lines of 'YYYY-MM-DDis' or 'YYYY-MM-DD/YYYY-MM-DDis'
-#     where 's' is space/empty for No-School dates or the alphabetical Special
-#     schedule code, and 'i' can be empty/space or '+' (means it is addition to
-#     the Normal schedule, otherwise it replaces the Normal schedule).
-#     The double date format is the beginning and end of a date range.
-#     There can be a single or multiple Special schedules for the same date,
-#     and all get rung, even if that date is also a No-School date.
-#     All characters after position 12 resp. 23 are ignored as a comment.
-# - ringalarms (optional): lines with 'Sfilename', where 'S' at the first
-#     character is the minimum number of seconds the button needs to be
-#     pressed for the .wav alarmtone in 'filename' to be played. If 'S' is '0'
-#     then the tone is played whenever the amp is switched on.
-# Workings: Every weekday (except on No-School days) the Normal schedule will
-#   ring and additional schedules (with '+' after the date). On dates with a
-#   Special schedule without a '+' the Normal schedule will not ring.
+# - ringtimes: lines with `HH:MMsR` where `s` is Schedule (Normal schedule is
+#   space/empty, and Special schedule codes have an alphabetic character) and
+#   `R` is the Ringtone code. If `R` is space/empty it means it is `0` (the
+#   default), a `-` means a mute for that time regardless of any other
+#   schedules. In general, the `R` matches the first position of lines with the
+#   filename of a `.wav` sound file in the `ringtones` file. R is numerical if
+#   not empty or `-`. All characters after position 7 are ignored as a comment.
+# - ringtones: lines with `Rfilename`, where `R` is the numerical Ringtone
+#   code (0 is the Normal ringtone by default) and 'filename' is the filesystem
+#   location of a .wav file.
+# - ringdates (optional): lines of `YYYY-MM-DDis` or
+#   `YYYY-MM-DD/YYYY-MM-DDis` where `s` is space/empty for No-Bells dates or
+#   the alphabetical Special schedule code, and `i` can be empty/space or `+`
+#   (means in addition to the Normal schedule, otherwise the Normal schedule is
+#   replaced by the Speciak schedule). The double date format is the beginning
+#   and end of a date range. There can be multiple Special schedules for the
+#   same date, and all get rung, even if that date is also a No-Bells date.
+#   All characters after position 12 resp. 23 are ignored as a comment.
+# - ringalarms (optional): lines with `Sfilename`, where `S` at the first
+#   character is the minimum number of seconds the button needs to be pressed
+#   for the .wav alarmtone in `filename` to be played. If `S` is `0` then the
+#   tone is played whenever the amplifier is switched on.
 # Required: wiringpi(gpio) coreutils(sleep fold readlink) alsa-utils(aplay)
 #   date [control:tmux] [keyboard:evdev grep sudo coreutils(ls head)]
 
@@ -139,50 +149,56 @@ Button(){ # IO:$relayon $playing $buttonold
 	fi
 }
 
-Bellcheck(){ # IO:$nowold $daylog
-		# I:$noschooldates $specialdates $schedules $additional $ringcodes $muted
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') skipnormal=0 day rung=0
+Bellcheck(){ # IO:$nowold $daylogged
+		# I:$nobellsdates $specialdates $schedules $additional $ringcodes $muted
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') addit=0 rung=0 sslogs=0
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
-	[[ $now = 00:00 ]] && daylog=1
+	# If muted, register now as rung
+	[[ "${muted[$now]} " = *" $today "* ]] &&
+		rung=1 && Log "> $today muting: $now"
+	# No daylog yet at the start of a new day
+	[[ $now = 00:00 ]] && daylogged=0
 	# Check all Special schedules
 	for s in "${!specialdates[@]}"
 	do
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
-			((daylog && ++daylog)) &&
+			# Log all special schedules for today if not yet logged
+			((!daylogged && ++sslogs)) &&
 				Log "> $today '$s${additional[$s]}' day:${schedules[$s]}"
-			[[ "${muted[$now]} " = *" $today "* ]] &&
-				Log "> $today muting: $now" && return
-			[[ -z ${additional[$s]} ]] && skipnormal=1
-			[[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
+			# If any Special schedules is Additional today and first log
+			((!daylogged)) && [[ ${additional[$s]} ]] && addit=1
+			((!rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
-	((daylog>1 && skipnormal)) && daylog=0
-	((rung || skipnormal)) && return
-	# No-School dates trump Normal days
-	if [[ "$noschooldates " = *" $today "* ]]
+	((sslogs)) && daylogged=1 sslogs=0
+	# No longer deal with Normal days if No-Bells day today
+	if [[ "$nobellsdates " = *" $today "* ]]
 	then
-		((daylog)) && daylog=0 && Log "> $today No School day"
+		# Log No-Bells day if nothing logged yet today
+		((!daylogged)) && daylogged=1 && Log "> $today No-Bells day"
 		return
 	fi
-	# Ignore weekends (days 6 and 7)
+	# Ignore weekends (days 6 and 7), no Normal day
 	if (($(date +'%u')>5))
 	then
-		((daylog)) && daylog=0 && Log "> $today $(date +'%A')"
+		# Log Weekend day if nothing logged yet today
+		((!daylogged)) && daylogged=1 && Log "> $today $(date +'%A')"
 		return
 	fi
-	# Check Normal days
-	((daylog)) && daylog=0 && Log "> $today Normal day:${schedules['_']}"
-	[[ "${schedules['_']} " = *" $now "* ]] && Ring _
+	# Log Normal day if nothing logged yet today or Additional schedule(s)
+	((!daylogged || addit)) && daylogged=1 &&
+		Log "> $today Normal day:${schedules['_']}"
+	((!rung)) && [[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
 
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additional=() muted=()
 tonefiles=() kbd= gpio= test=0
-noschooldates= nowold= relayon=0 buttonold=9 playing= errors=0 i= daylog=1
+nobellsdates= nowold= relayon=0 buttonold=9 playing= errors=0 i= daylogged=0
 self=$(readlink -e "$0")
 # Read files from the same directory as this script
 cd "${self%/*}"
@@ -249,7 +265,7 @@ do # Validate and split dates
 			Error "Schedule should be alphabetic, not '$s'"
 		while [[ ! $date > $date2 ]]
 		do
-			[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
+			[[ ${s// } ]] && specialdates[$s]+=" $date" || nobellsdates+=" $date"
 			[[ $idate = '+' ]] && additional[$s]='+'
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
@@ -260,7 +276,7 @@ do # Validate and split dates
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		[[ $date < $today ]] && continue
-		[[ ${s// } ]] && specialdates[$s]+=" $date" || noschooldates+=" $date"
+		[[ ${s// } ]] && specialdates[$s]+=" $date" || nobellsdates+=" $date"
 		[[ $idate = '+' ]] && additional[$s]='+'
 	fi
 done
@@ -290,7 +306,7 @@ do # Validate and store times
 	[[ -z ${specialdates[$s]} && $s != '_' ]] && continue
 	# Mute '-' ringcodes
 	[[ $ringcode = '-' ]] &&
-		muted[$time]=${specialdates[$s]} schedules[$s]+=" $time" ||
+		muted[$time]=${specialdates[$s]} schedules[$s]+=" $time-Muted" ||
 		ringcodes[$time$s]=$ringcode schedules[$s]+=" $time"
 done
 ((error==1)) && s= || s=s
@@ -326,7 +342,7 @@ do
 done
 
 # Listing dates
-Log "> No School dates:$noschooldates"
+Log "> No School dates:$nobellsdates"
 for s in "${!specialdates[@]}"
 do Log "> '$s' dates:${specialdates[$s]}"
 done
@@ -339,7 +355,6 @@ do
 	do
 		r=${ringcodes[$t$s]}
 		case $r in
-			'') scheds+=" $t-" ;;
 			0) scheds+=" $t" ;;
 			*) scheds+=" ${t},$r"
 		esac
