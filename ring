@@ -151,7 +151,8 @@ Button(){ # IO:$relayon $playing $buttonold
 
 Bellcheck(){ # IO:$nowold $daylogged
 		# I:$nobellsdates $specialdates $schedules $additional $ringcodes $muted
-	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d') noadd=1 rung=0 sslogs=0
+	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d')
+	local additoday=0 spectoday=0 rung=0 sslogs=0
 	# Ignore if this time has been checked earlier
 	[[ $now = $nowold ]] && return
 	nowold=$now
@@ -165,11 +166,12 @@ Bellcheck(){ # IO:$nowold $daylogged
 	do
 		if [[ "${specialdates[$s]} " = *" $today "* ]]
 		then
+			spectoday=1
 			# Log all special schedules for today if not yet logged
 			((!daylogged && ++sslogs)) &&
 				Log "> $today '$s${additional[$s]}' day:${schedules[$s]}"
 			# If any Special schedules is Additional today, mark it
-			[[ ${additional[$s]} ]] && noadd=0
+			[[ ${additional[$s]} ]] && additoday=1
 			((!rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
@@ -189,9 +191,11 @@ Bellcheck(){ # IO:$nowold $daylogged
 		return
 	fi
 	# Log Normal day if nothing logged yet today or Additional schedule(s)
-	((!daylogged || !noadd)) && daylogged=1 &&
+	((!daylogged || additoday)) && daylogged=1 &&
 		Log "> $today Normal day:${schedules['_']}"
-	((!rung && !noadd)) && [[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
+	# If not rung yet and: additional schedule or no special schedules at all
+	((!rung && (additoday || !spectoday))) &&
+		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
 
