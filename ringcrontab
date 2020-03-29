@@ -1,7 +1,0 @@
-## Add to user's crontab through 'crontab -e'
-
-SHELL=/bin/bash
-
-# (m h dom mon dow) command
-
-@reboot /home/pi/git/piring/ringatreboot

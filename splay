@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# splay - Play sound files over the amplifier
+
+[[ -z $1 ]] && echo "Must have sound files as arguments" && exit 1
+
+relaypin=14 ampdelay=2 shutoffdelay=.5 on=0 off=1
+
+# For testing without gpio installed
+gpio=$(type -p gpio) || gpio(){ :;}
+
+# Turn on the amplifier, play the file, and turn if off again
+gpio export $relaypin out
+gpio -g write $relaypin $on
+sleep $ampdelay
+for f
+do [[ -f $f ]] && play -V0 -q "$f" || echo "Argument is not a file: $f"
+done
+sleep $shutoffdelay
+gpio -g write $relaypin $off
+
+exit 0

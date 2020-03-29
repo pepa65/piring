@@ -1,9 +1,0 @@
-## Rfilename (R: Ringtone code, filename: .wav-file)
-
-# 0: Normal
-0ringbell.wav
-# 1: Elementary bell (no longer used)
-#1ringtrumpet.wav
-1ringbells.wav
-# 2: Open House ding
-2ringding.wav

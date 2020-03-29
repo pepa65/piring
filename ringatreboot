@@ -1,9 +1,0 @@
-#!/bin/bash
-
-sleep 20
-
-## Deployment with tmux
-/usr/bin/tmux new -A -d -s Ring /home/pi/git/piring/ring
-
-## Alternative deployment without tmux
-#/home/pi/git/piring/ring >>/home/pi/ring.log

@@ -1,0 +1,84 @@
+#!/usr/bin/env python2.7
+#coding: utf-8
+# Required: python2.7 pygame
+
+import pygame as pg
+import os
+
+ww,wh,delay = 480,320,200 # ms
+z,bw,bh,cx,cy = 0,ww/2,wh/2,ww/4,wh/4
+bg,leftclick = (0,0,0),1
+btn,x,y,face,facebig = 0,1,2,3,4
+buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
+	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
+dir = os.path.dirname(os.path.abspath(__file__))+'/'
+close,close2,buttonfile = dir+'0.png',dir+'0f.png',dir+'buttonfile'
+
+# Initialize display
+#win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
+win = pg.display.set_mode((ww,wh),pg.NOFRAME)
+
+while True: # Never stop
+	selected = False # No button selected
+	f = open(buttonfile, 'w')
+	f.write('0')
+	f.close()
+	while not selected:
+		confirmed = False # No button confirmed
+		# Display buttons
+		for b in buttons:
+			img = pg.image.load(dir+b[face])
+			win.blit(img,(b[x],b[y]))
+		pg.display.flip()
+
+		# Wait for one of the 4 buttons to be pressed
+		choice = False # No button pressed
+		while not choice:
+			for event in pg.event.get():
+				if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
+					mx,my = event.pos
+					# Check every button
+					for b in buttons:
+						if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
+							# Pressed button found
+							choice=True
+							# Announcements don't need to be confirmed
+							if b[btn]=='1':
+								confirmed,selected = True,True
+							else:
+								# Show the choice with cancel option
+								win.fill(bg)
+								img = pg.image.load(dir+b[face])
+								win.blit(img,(cx,cy))
+								img = pg.image.load(close2)
+								win.blit(img,(370,10))
+								pg.display.flip()
+							break
+		# Get confirmation if needed
+		while not confirmed:
+			for event in pg.event.get():
+				if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
+					# Either confirmed or cancelled
+					confirmed = True
+					mx,my = event.pos
+					if mx>=cx and mx-bw<=cx and my>=cy and my-bh<=cy:
+						# Confirmed
+						selected = True
+	# Show the chosen option with close button and pass it to ring-script
+	img = pg.image.load(dir+b[facebig])
+	win.blit(img,(0,0))
+	img = pg.image.load(close)
+	win.blit(img,(425,5))
+	pg.display.flip()
+	f = open(buttonfile, 'w')
+	f.write(b[btn])
+	f.close()
+	# Wait for the close button to be pressed
+	closed = False
+	while not closed: # Close pressed?
+		for event in pg.event.get():
+			if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
+				mx,my = event.pos
+				if mx>420 and my<260:
+					closed = True
+					break
