@@ -38,8 +38,20 @@ wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
 [$buttons: python2.7 pygame] [`rc.local`: tmux(optional)]
 
 ## Deployment
+### Install
+Clone repo:
+```
+cd $HOME
+mkdir git
+cd git
+git clone https://gitlab.com/pepa65/piring
+cd piring
+```
+### Auto start
 To autostart on reboot, source the script `rc.local`. There are two
-deployment examples given there.
+deployment examples given there (privileges needed to write to /etc/rc.local):
+
+'source rc.local'
 
 ## License
 GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html

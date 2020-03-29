@@ -3,13 +3,15 @@
 #   source rc.local
 
 # Deployment with tmux
-deploy="/usr/bin/tmux new-s -d /home/pi/git/piring/ring"
-# Alternative deployment without tmux
-#deploy="/home/pi/git/piring/ring >>/home/pi/ring.log"
+deploy="/usr/bin/tmux new-s -d $HOME/git/piring/ring |tee -a $HOME/ring.log"
 
+# Alternative deployment without tmux
+#deploy="$HOME/git/piring/ring >>$HOME/ring.log"
+
+# Install
 rc=/etc/rc.local
 [[ -f $rc ]] &&
 	echo "$deploy" |sudo tee -a "$rc" ||
 	echo -e "#!/bin/bash\n\n$deploy" |sudo tee "$rc"
 
-# Please check /etc/rc.local to make sure you're starting `ring` only once!
+# Please check `/etc/rc.local` to make sure you're starting `ring` only once!
