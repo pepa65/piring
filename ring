@@ -66,7 +66,7 @@ set +xv
 
 
 # Adjustables: pins 1-13 and 28-40 are taken by the touchscreen
-relaypin=14 ampdelay=2 pollres=.1 shutoffdelay=.5
+relaypin=14 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
 
 # Directory names, scripts and input filenames
 ts=touchscreen sf=soundfiles ring=$(readlink -e "$0") buttons=$ts/buttons
@@ -368,7 +368,7 @@ Log "> All input files are valid"
 	Log "* Essential package 'wiringpi' (program 'gpio') not installed"
 
 # Starting the button interface
-$buttons &
+DISPLAY=$display $buttons &
 buttonpid=$!
 Log "> Touchscreen ready"
 
