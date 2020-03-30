@@ -1,0 +1,26 @@
+## Installing piring
+
+# Hardware: Raspberry Pi with attached touchscreen and relay board
+
+# Clone repo
+cd
+mkdir git
+cd git
+git clone https://gitlab.com/pepa65/piring
+cd piring
+
+# Install prerequisite packages
+sudo apt install wiringpi sox python-pygame tmux
+
+# Allow autostart desktop through Lightdm
+sudo sed "s@^autologin-user=.*$@autologin-user=$USER@" \
+		-i /etc/lightdm/lightdm.conf
+#adduser pi nopasswdlogin
+sudo gpasswd -a pi nopasswdlogin
+
+# Allow user to run gpio binary
+chmod u+s /usr/bin/gpio
+
+# Setup autostart on (re)boot
+source rc.local
+

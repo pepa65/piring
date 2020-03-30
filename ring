@@ -55,7 +55,7 @@ set +xv
 #   All characters after position 12 resp. 23 are ignored as a comment.
 #
 # Required: wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
-#  [$buttons: python2.7 pygame] [`rc.local`: tmux(optional)]
+#  [$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
 #
 # Deployment:
 #  To autostart on reboot, source the script `rc.local`. There are two

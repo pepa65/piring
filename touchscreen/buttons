@@ -15,9 +15,11 @@ dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,close2,buttonfile = dir+'0.png',dir+'0f.png',dir+'buttonfile'
 
 # Initialize display
+os.putenv('SDL_FBDEV', '/dev/fb1')
 pg.display.init()
 #win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
 win = pg.display.set_mode((ww,wh),pg.NOFRAME)
+pygame.mouse.set_visible(False)
 
 while True: # Never stop
 	selected = False # No button selected
