@@ -219,7 +219,7 @@ Exittrap(){ # I:$relaypin $playing
 	gpio -g write $relaypin $off
 	gpio unexportall
 	kill "$playing"
-	kill -9 "$buttonpid"
+	kill -9 "$buttonspid"
 	Log
 	Log "# Quit" time
 }
@@ -227,7 +227,7 @@ Exittrap(){ # I:$relaypin $playing
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additional=() muted=()
 kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 buttonpid=
+on=0 off=1 buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -369,7 +369,7 @@ Log "> All input files are valid"
 
 # Starting the button interface
 DISPLAY=$display $buttons &
-buttonpid=$!
+buttonspid=$!
 Log "> Touchscreen ready"
 
 # Main loop

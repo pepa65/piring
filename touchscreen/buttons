@@ -12,18 +12,21 @@ btn,x,y,face,facebig = 0,1,2,3,4
 buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
 	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
-close,close2,buttonfile = dir+'0.png',dir+'0f.png',dir+'buttonfile'
+close,close2,icon,state = dir+'0.png',dir+'0f.png',dir+'icon.png',dir+'state'
 
 # Initialize display
 os.putenv('SDL_FBDEV', '/dev/fb1')
 pg.display.init()
-#win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
-win = pg.display.set_mode((ww,wh),pg.NOFRAME)
+icn = pg.image.load(icon)
+pg.display.set_icon(icn)
+pg.display.set_caption('piring')
+win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
+#win = pg.display.set_mode((ww,wh),pg.NOFRAME)
 pg.mouse.set_visible(False)
 
 while True: # Never stop
 	selected = False # No button selected
-	f = open(buttonfile, 'w')
+	f = open(state, 'w')
 	f.write('0')
 	f.close()
 	while not selected:
@@ -73,7 +76,7 @@ while True: # Never stop
 	img = pg.image.load(close)
 	win.blit(img,(425,5))
 	pg.display.flip()
-	f = open(buttonfile, 'w')
+	f = open(state, 'w')
 	f.write(b[btn])
 	f.close()
 	# Wait for the close button to be pressed

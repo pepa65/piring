@@ -1,26 +1,33 @@
 ## Installing piring
 
 # Hardware: Raspberry Pi with attached touchscreen and relay board
+# From www.lcdwiki.com/3.5inch_RPi_Display download UbuntuMate:18.04.2
+# and put it on the microSD. You'll want to run raspi-config to fill out the
+# partition size, set passwords etc.:
+sudo raspi-config
 
-# Clone repo
+# Refresh the repo info, upgrade and install prerequisite packages and git:
+sudo apt update
+sudo apt full-upgrade
+sudo apt install wiringpi sox python-pygame tmux git
+
+# Allow user to run gpio binary:
+chmod u+s /usr/bin/gpio
+
+# Wisely pick your desired screensaver or power timeout!
+# Allow autostart desktop through Lightdm:
+sudo sed "s@^autologin-user=.*$@autologin-user=$USER@" \
+		-i /etc/lightdm/lightdm.conf
+sudo gpasswd -a pi nopasswdlogin
+sudo gpasswd -a pi audio
+
+# Clone repo:
 cd
 mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
 cd piring
 
-# Install prerequisite packages
-sudo apt install wiringpi sox python-pygame tmux
-
-# Allow autostart desktop through Lightdm
-sudo sed "s@^autologin-user=.*$@autologin-user=$USER@" \
-		-i /etc/lightdm/lightdm.conf
-#adduser pi nopasswdlogin
-sudo gpasswd -a pi nopasswdlogin
-
-# Allow user to run gpio binary
-chmod u+s /usr/bin/gpio
-
-# Setup autostart on (re)boot
+# Setup autostart on (re)boot (authorization asked):
 source rc.local
 
