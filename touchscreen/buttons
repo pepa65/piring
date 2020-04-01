@@ -23,8 +23,8 @@ icn = pg.image.load(icon)
 pg.display.set_icon(icn)
 pg.display.set_caption('piring')
 pg.mouse.set_visible(False)
+# Never use FULLSCREEN as it messes up the touch readings
 win = pg.display.set_mode((ww,wh),pg.NOFRAME)
-#win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
 
 while True: # Never stop
 	selected = False # No button selected
@@ -45,7 +45,7 @@ while True: # Never stop
 			for event in pg.event.get():
 				if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
 					mx,my = event.pos
-					os.write(2,str(mx)+','+str(my)+' ')
+					os.write(2,str(mx)+','+str(my)+os.linesep)
 					# Check every button
 					for b in buttons:
 						if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
@@ -70,7 +70,7 @@ while True: # Never stop
 					# Either confirmed or cancelled
 					confirmed = True
 					mx,my = event.pos
-					os.write(2,str(mx)+','+str(my)+' ')
+					os.write(2,str(mx)+','+str(my)+os.linesep)
 					if mx>=cx and mx-bw<=cx and my>=cy and my-bh<=cy:
 						# Confirmed
 						selected = True
@@ -89,7 +89,7 @@ while True: # Never stop
 		for event in pg.event.get():
 			if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
 				mx,my = event.pos
-				os.write(2,str(mx)+','+str(my)+' ')
+				os.write(2,str(mx)+','+str(my)+os.linesep)
 				if mx>420 and my<260:
 					closed = True
 					break
