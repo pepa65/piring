@@ -18,8 +18,8 @@ chmod u+s /usr/bin/gpio
 
 # Wisely pick your desired screensaver or power timeout, and no lock!
 # Allow autostart desktop through Lightdm:
-echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" \
-	>>/etc/lightdm/lightdm.conf
+echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" |\
+	sudo tee -a /etc/lightdm/lightdm.conf
 sudo gpasswd -a pi nopasswdlogin
 sudo gpasswd -a pi audio
 
@@ -33,3 +33,6 @@ cd piring
 # Setup autostart on (re)boot (authorization asked):
 source rc.local
 
+# Tweak firmware:
+echo -e "# quicker sound\nhdmi_ignore_edid_audio=1" |\
+	sudo tee -a /boot/firmware/usercfg.txt
