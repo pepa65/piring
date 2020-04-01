@@ -221,8 +221,7 @@ Exittrap(){ # I:$relaypin $playing
 	gpio unexportall
 	kill "$playing"
 	kill -9 "$buttonspid"
-	Log
-	Log "# Quit" time
+	Log $'\n'"# Quit" time
 }
 
 # Globals
@@ -233,7 +232,7 @@ on=0 off=1 buttonspid=
 # Read files from the same directory as this script
 cd "${ring%/*}"
 
-Log "# Ring program initializing" time
+Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # For testing without gpio installed
@@ -369,7 +368,7 @@ Log "> All input files are valid"
 	Log "* Essential package 'wiringpi' (application 'gpio') not installed"
 
 # Starting the button interface
-DISPLAY=$display $buttons &
+DISPLAY=$display $buttons 2>/tmp/buttons.log &
 buttonspid=$!
 (($?)) && Log "* Can't start 'buttons'" && exit 3
 Log "> Touchscreen ready"

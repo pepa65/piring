@@ -2,17 +2,20 @@
 # Add a deployment method to /etc/rc.local by sourcing this file like:
 #   source rc.local
 
+user=pi home=/home/$user
+
 # Deployment with tmux
-deploy="su $USER -c \"/usr/bin/tmux new-s -d \\\"$HOME/git/piring/ring |\
-	tee -a $HOME/ring.log\\\"\""
+deploy="su $user -c \"cd $home; /usr/bin/tmux new-s -d \\\"git/piring/ring |\
+	tee -a ring.log\\\"\""
 
 # Alternative deployment without tmux
-#deploy="su $USER -c\"$HOME/git/piring/ring >>$HOME/ring.log\""
+#deploy="su $user -c\"cd $home; git/piring/ring >>ring.log\""
 
 # Install
 rc=/etc/rc.local
-[[ -f $rc ]] &&
+if [[ -f $rc ]] &&
 	echo "$deploy" |sudo tee -a "$rc" ||
 	echo -e "#!/bin/bash\n\n$deploy" |sudo tee "$rc"
+sudo chmod +x /etc/rc.local
 
 # Please check `/etc/rc.local` to make sure you're starting `ring` only once!

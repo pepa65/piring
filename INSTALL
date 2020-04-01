@@ -34,5 +34,8 @@ cd piring
 source rc.local
 
 # Tweak firmware:
-echo -e "# quicker sound\nhdmi_ignore_edid_audio=1" |\
-	sudo tee -a /boot/firmware/usercfg.txt
+echo ads7846 >>/etc/modules
+echo "# quicker sound
+hdmi_ignore_edid_audio=1
+disable_touchscreen=0
+enable_dpi_lcd=1" |sudo tee -a /boot/firmware/usercfg.txt
