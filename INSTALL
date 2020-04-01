@@ -1,23 +1,25 @@
 ## Installing piring
 
-# Hardware: Raspberry Pi with attached touchscreen and relay board
+# Hardware: Raspberry Pi (3B) with touchscreen (ADS7846) and relay board.
 # From www.lcdwiki.com/3.5inch_RPi_Display download UbuntuMate:18.04.2
-# and put it on the microSD. You'll want to run raspi-config to fill out the
+# and put it on the microSD. You might want to run raspi-config to fill out the
 # partition size, set passwords etc.:
 sudo raspi-config
 
 # Refresh the repo info, upgrade and install prerequisite packages and git:
 sudo apt update
+sudo apt install sox python-pygame tmux git
 sudo apt full-upgrade
-sudo apt install wiringpi sox python-pygame tmux git
+# There is a file clash with the bluez-firmware...
+sudo dpkg -i --force-overwrite /var/cache/apt/archives/linux-firmware-raspi2_1.20190819-0ubuntu0.18.04.1_armhf.deb
 
 # Allow user to run gpio binary:
 chmod u+s /usr/bin/gpio
 
-# Wisely pick your desired screensaver or power timeout!
+# Wisely pick your desired screensaver or power timeout, and no lock!
 # Allow autostart desktop through Lightdm:
-sudo sed "s@^autologin-user=.*$@autologin-user=$USER@" \
-		-i /etc/lightdm/lightdm.conf
+echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" \
+	>>/etc/lightdm/lightdm.conf
 sudo gpasswd -a pi nopasswdlogin
 sudo gpasswd -a pi audio
 
