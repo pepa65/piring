@@ -240,10 +240,10 @@ gpio=$(type -p gpio) || gpio(){ :;}
 
 # Setting up pins
 ! gpio export $relaypin out &&
-	Log "* Setting up relay pin $relaypin for output failed" && exit 3 ||
+	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
 gpio -g write $relaypin $off && relayon=0 ||
-	Log "* Error turning off amplifier" time
+	Log "* Error turning off amplifier"
 trap Exittrap QUIT EXIT
 
 Log "- Validating Date information in '$(readlink -f $ringdates)'"
@@ -361,15 +361,16 @@ done
 # Reporting initial checks
 ((errors==1)) && s= || s=s
 ((errors)) &&
-	Log "* Total of $errors error$s, not starting Ring program" && exit 1
+	Log "* Total of $errors error$s, not starting Ring program" && exit 2
 Log "> All input files are valid"
 
 [[ $gpio ]] ||
-	Log "* Essential package 'wiringpi' (program 'gpio') not installed"
+	Log "* Essential package 'wiringpi' (application 'gpio') not installed"
 
 # Starting the button interface
 DISPLAY=$display $buttons &
 buttonspid=$!
+(($?)) && Log "* Can't start 'buttons'" && exit 3
 Log "> Touchscreen ready"
 
 # Main loop

@@ -5,6 +5,7 @@
 import pygame as pg
 import os
 
+touchscreen = '/dev/input/event3'
 ww,wh,delay = 480,320,200 # ms
 z,bw,bh,cx,cy = 0,ww/2,wh/2,ww/4,wh/4
 bg,leftclick = (0,0,0),1
@@ -15,14 +16,14 @@ dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,close2,icon,state = dir+'0.png',dir+'0f.png',dir+'icon.png',dir+'state'
 
 # Initialize display
-os.putenv('SDL_FBDEV', '/dev/fb1')
+os.putenv('SDL_MOUSEDEV',touchscreen)
 pg.display.init()
 icn = pg.image.load(icon)
 pg.display.set_icon(icn)
 pg.display.set_caption('piring')
+pg.mouse.set_visible(False)
 win = pg.display.set_mode((0,0),pg.FULLSCREEN|pg.NOFRAME)
 #win = pg.display.set_mode((ww,wh),pg.NOFRAME)
-pg.mouse.set_visible(False)
 
 while True: # Never stop
 	selected = False # No button selected
