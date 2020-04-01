@@ -3,8 +3,8 @@
 #   source rc.local
 
 # Deployment with tmux
-deploy="su $USER -c \"/usr/bin/tmux new-s -d $HOME/git/piring/ring |
-	tee -a $HOME/ring.log\""
+deploy="su $USER -c \"/usr/bin/tmux new-s -d \\\"$HOME/git/piring/ring |
+	tee -a $HOME/ring.log\\\"\""
 
 # Alternative deployment without tmux
 #deploy="su $USER -c\"$HOME/git/piring/ring >>$HOME/ring.log\""

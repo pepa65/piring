@@ -152,6 +152,7 @@ Button(){ # IO:$relayon $playing I:$relaypin $state
 	then
 		play -V0 --ignore-length -q "$sf/$button.alarm" 2>/dev/null &
 		playing=$!
+		(($?)) && Log "* Error playing $snd at $now"
 		soundfile=$(readlink "$sf/$button.alarm")
 		((button>1)) && Log "- ALARM $button: $soundfile" time
 	fi

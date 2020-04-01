@@ -16,7 +16,8 @@ dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,close2,icon,state = dir+'0.png',dir+'0f.png',dir+'icon.png',dir+'state'
 
 # Initialize display
-os.putenv('SDL_MOUSEDEV',touchscreen)
+os.environ['SDL_MOUSEDRV'] = 'TSLIB'
+os.environ['SDL_MOUSEDEV'] = touchscreen
 pg.display.init()
 icn = pg.image.load(icon)
 pg.display.set_icon(icn)

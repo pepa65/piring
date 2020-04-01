@@ -14,7 +14,8 @@ gpio export $relaypin out
 gpio -g write $relaypin $on
 sleep $ampdelay
 for f
-do [[ -f $f ]] && play -V0 -q "$f" || echo "Argument is not a file: $f"
+do [[ -f $f ]] && play -V0 --ignore-length -q "$f" ||
+		echo "Argument is not a file: $f"
 done
 sleep $shutoffdelay
 gpio -g write $relaypin $off
