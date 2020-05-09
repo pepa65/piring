@@ -16,7 +16,8 @@ btn,x,y,face,facebig = 0,1,2,3,4
 buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
 	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
-close,close2,icon,state = dir+'0.png',dir+'0f.png',dir+'icon.png',dir+'state'
+close,close2,ok2,icon = dir+'x.png',dir+'xf.png',dir+'vf.png',dir+'icon.png'
+state = dir+'state'
 
 # Initialize display
 pg.display.init()
@@ -31,7 +32,7 @@ touched = time.time()
 
 while True: # Never stop
 	selected = False # No button selected
-	f = open(state, 'w')
+	f = open(state,'w')
 	f.write('0')
 	f.close()
 	while not selected:
@@ -72,12 +73,14 @@ while True: # Never stop
 								if b[btn]=='1':
 									confirmed,selected = True,True
 								else:
-									# Show the choice with cancel option
+									# Show the choice with OK/cancel option
 									win.fill(bg)
 									img = pg.image.load(dir+b[face])
 									win.blit(img,(cx,cy))
 									img = pg.image.load(close2)
 									win.blit(img,(370,10))
+									img = pg.image.load(ok2)
+									win.blit(img,(10,210))
 									pg.display.flip()
 								break
 			# Check timeout
@@ -99,7 +102,7 @@ while True: # Never stop
 					confirmed = True
 					mx,my = event.pos
 					os.write(2,str(mx)+','+str(my)+os.linesep)
-					if mx>=cx and mx-bw<=cx and my>=cy and my-bh<=cy:
+					if mx*3<my*4: # Lower Left half of the screen
 						# Confirmed
 						selected = True
 			# Check timeout
@@ -113,7 +116,7 @@ while True: # Never stop
 	img = pg.image.load(close)
 	win.blit(img,(425,5))
 	pg.display.flip()
-	f = open(state, 'w')
+	f = open(state,'w')
 	f.write(b[btn])
 	f.close()
 	# Wait for the close button to be pressed
