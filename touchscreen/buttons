@@ -16,8 +16,8 @@ btn,x,y,face,facebig = 0,1,2,3,4
 buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
 	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
-close,close2,ok2,icon = dir+'x.png',dir+'xf.png',dir+'vf.png',dir+'icon.png'
-state = dir+'state'
+close,cancel,confirm = dir+'x.png',dir+'cancel.png',dir+'confirm.png'
+state,icon = dir+'state',dir+'icon.png'
 
 # Initialize display
 pg.display.init()
@@ -77,9 +77,9 @@ while True: # Never stop
 									win.fill(bg)
 									img = pg.image.load(dir+b[face])
 									win.blit(img,(cx,cy))
-									img = pg.image.load(close2)
-									win.blit(img,(370,10))
-									img = pg.image.load(ok2)
+									img = pg.image.load(cancel)
+									win.blit(img,(10,10))
+									img = pg.image.load(confirm)
 									win.blit(img,(10,210))
 									pg.display.flip()
 								break
@@ -102,7 +102,7 @@ while True: # Never stop
 					confirmed = True
 					mx,my = event.pos
 					os.write(2,str(mx)+','+str(my)+os.linesep)
-					if mx*3<my*4: # Lower Left half of the screen
+					if my>bh: # Lower half of the screen
 						# Confirmed
 						selected = True
 			# Check timeout
