@@ -66,10 +66,9 @@ set +xv
 
 
 # Adjustables: pins 1-26 are taken up by the touchscreen
-# BCM pin 16 (pin36): relay; BCM pin 21 (pin40): pulled up to 5V; pin39: GND
-# Initially write 1 to 21 to pull it to 5V, write 0/1 to 16 for relay on/off
-relaypin=16 vpin=21 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
-
+# BCM pin 26 (pin37): relay; pin39: GND; pin2/4: 5V (relay needs 5V)
+relaypin=26 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
+1
 # Directory names, scripts and input filenames
 ts=touchscreen sf=soundfiles ring=$(readlink -e "$0") buttons=$ts/buttons
 ringtimes=ringtimes ringdates=ringdates state=$ts/state
@@ -220,7 +219,6 @@ Bellcheck(){ # IO:$nowold $daylogged
 
 Exittrap(){ # I:$relaypin $playing
 	gpio -g write $relaypin $off
-	gpio -g write $vpin $out0v
 	gpio unexportall
 	kill "$playing"
 	kill -9 "$buttonspid"
@@ -230,7 +228,7 @@ Exittrap(){ # I:$relaypin $playing
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additional=() muted=()
 kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 out0v=0 out5v=1 buttonspid=
+on=0 off=1 buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -242,11 +240,6 @@ Log "> Amplifier switch-on delay ${ampdelay}s"
 gpio=$(type -p gpio) || gpio(){ :;}
 
 # Setting up pins
-! gpio export $vpin out &&
-	Log "* Setting up 5V pin $vpin for output failed" && exit 1 ||
-	Log "> 5V pin $vpin used for output"
-gpio -g write $vpin $out5v ||
-	Log "* Error turning on 5V to the relay"
 ! gpio export $relaypin out &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
