@@ -65,8 +65,10 @@ set +xv
 #  GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
 
 
-# Adjustables: pins 1-13 and 28-40 are taken by the touchscreen
-relaypin=14 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
+# Adjustables: pins 1-26 are taken up by the touchscreen
+# BCM pin 16 (pin36): relay; BCM pin 21 (pin40): pulled up to 5V; pin39: GND
+# Initially write 1 to 21 to pull it to 5V, write 0/1 to 16 for relay on/off
+relaypin=16 vpin=21 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
 
 # Directory names, scripts and input filenames
 ts=touchscreen sf=soundfiles ring=$(readlink -e "$0") buttons=$ts/buttons
@@ -218,6 +220,7 @@ Bellcheck(){ # IO:$nowold $daylogged
 
 Exittrap(){ # I:$relaypin $playing
 	gpio -g write $relaypin $off
+	gpio -g write $vpin $out0v
 	gpio unexportall
 	kill "$playing"
 	kill -9 "$buttonspid"
@@ -227,7 +230,7 @@ Exittrap(){ # I:$relaypin $playing
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additional=() muted=()
 kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 buttonspid=
+on=0 off=1 out0v=0 out5v=1 buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -239,6 +242,11 @@ Log "> Amplifier switch-on delay ${ampdelay}s"
 gpio=$(type -p gpio) || gpio(){ :;}
 
 # Setting up pins
+! gpio export $vpin out &&
+	Log "* Setting up 5V pin $vpin for output failed" && exit 1 ||
+	Log "> 5V pin $vpin used for output"
+gpio -g write $vpin $out5v ||
+	Log "* Error turning on 5V to the relay"
 ! gpio export $relaypin out &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
