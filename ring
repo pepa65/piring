@@ -66,9 +66,9 @@ set +xv
 
 
 # Adjustables: pins 1-26 are taken up by the touchscreen
-# BCM pin 26 (pin37): relay; pin39: GND; pin2/4: 5V (relay needs 5V)
+# BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
 relaypin=26 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
-1
+
 # Directory names, scripts and input filenames
 ts=touchscreen sf=soundfiles ring=$(readlink -e "$0") buttons=$ts/buttons
 ringtimes=ringtimes ringdates=ringdates state=$ts/state

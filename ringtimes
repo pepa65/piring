@@ -9,47 +9,51 @@
 # S: Prolonged lunch on 2019-10-02
 12:40S-
 12:44S-
-# Normal schedule
-07:56
+# Normal schedule 2020/2021
+07:55
 08:00
+08:50
 08:55
-08:59
-09:54
-10:00
-10:04
-10:10 0 Used to be a different tone
-10:59
-11:03
-11:58
-12:40
-12:44
-13:39
-13:43
-14:38
-14:42
-15:37
+09:45   Morning break
+09:50
+09:55
+10:45
+10:50
+11:40   Lunch break
+12:20
+12:25
+13:15
+13:20
+14:10
+14:15   Shorter period
+14:55
+15:00   Shorter period
+15:40
 # E: Extra 8 am with Late schedule
 07:56E
 08:00E
-# L: Late schedule
-08:56L
+# L: Late schedule 2020/2021
+#07:45L  Teacher training
+#08:45L
+08:55L 
 09:00L
-09:46L
-09:50L
-10:36L
-10:42L
-10:46L
-10:50L0
-11:32L
-11:36L
-12:22L
-13:07L
-13:11L
-13:57L
-14:01L
-14:47L
-14:51L
-15:37L
+09:40L
+09:45L
+10:25L  Morning break
+10:35L
+10:40L
+11:20L
+11:25L
+12:05L  Lunch break
+12:40L
+12:45L
+13:25L
+13:30L
+14:10L
+14:15L
+14:55L
+15:00L
+15:40L
 # H: Open House additional evening schedule
 18:30H2
 19:00H2
