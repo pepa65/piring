@@ -2,13 +2,6 @@
 ## s: Schedule code (Normal = space/empty | Special = alphabetical)
 ## R: Ringtone code (numerical | space/empty = 0 | '-' = mute)
 
-# l: Shortened lunch on 2019-12-18, 2020-01-14
-12:20l
-# m: Shortened lunch on Late start on 2020-01-10
-12:44m
-# S: Prolonged lunch on 2019-10-02
-12:40S-
-12:44S-
 # Normal schedule 2020/2021
 07:55
 08:00
@@ -16,7 +9,7 @@
 08:55
 09:45   Morning break
 09:50
-09:55
+09:55   Elementary break end!
 10:45
 10:50
 11:40   Lunch break
@@ -24,14 +17,12 @@
 12:25
 13:15
 13:20
-14:10
+14:10   (Elementary break end)
 14:15   Shorter period
 14:55
 15:00   Shorter period
 15:40
-# E: Extra 8 am with Late schedule
-07:56E
-08:00E
+
 # L: Late schedule 2020/2021
 #07:45L  Teacher training
 #08:45L
@@ -40,11 +31,11 @@
 09:40L
 09:45L
 10:25L  Morning break
+10:30L
 10:35L
-10:40L
+11:15L
 11:20L
-11:25L
-12:05L  Lunch break
+12:00L  Lunch break
 12:40L
 12:45L
 13:25L
@@ -54,7 +45,12 @@
 14:55L
 15:00L
 15:40L
-# H: Open House additional evening schedule
+
+# E: Extra 8 am with Late schedule
+07:56E
+08:00E
+
+# H: Open House 2019 additional evening schedule
 18:30H2
 19:00H2
 19:12H2
@@ -72,3 +68,11 @@
 20:24H2
 20:31H2
 21:00H2
+
+# l: Shortened lunch on 2019-12-18, 2020-01-14
+12:20l
+# m: Shortened lunch on Late start on 2020-01-10
+12:44m
+# S: Prolonged lunch on 2019-10-02
+12:40S-
+12:44S-
