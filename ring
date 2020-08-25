@@ -93,7 +93,7 @@ Ring(){ #I:$now $relaypin $ampdelay $time $shutoffdelay
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
-	snd=$ringcode.ring
+	snd=$sf/$ringcode.ring
 	# Turn relay on
 	gpio -g write $relaypin $on && relayon=1 ||
 		Log "* Error turning on amplifier" time
