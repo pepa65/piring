@@ -125,7 +125,7 @@ Button(){ # IO:$relayon $playing I:$relaypin $state
 		then
 			kill -9 $playing
 			wait $playing 2>/dev/null
-			Log "* Interrupted sound from process $playing"
+			Log "* Interrupted sound from process $playing" time
 		fi
 		sleep $shutoffdelay
 		gpio -g write $relaypin $off && relayon=0 &&
