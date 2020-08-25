@@ -67,7 +67,7 @@ set +xv
 
 # Adjustables: pins 1-26 are taken up by the touchscreen
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-relaypin=26 ampdelay=2 pollres=.1 shutoffdelay=.5 display=:0
+relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0
 
 # Directory names, scripts and input filenames
 ts=touchscreen sf=soundfiles ring=$(readlink -e "$0") buttons=$ts/buttons
@@ -190,7 +190,7 @@ Bellcheck(){ # IO:$nowold $daylogged
 			((!rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
-	((sslogs)) && daylogged=1 sslogs=0
+	#((sslogs)) && daylogged=1 sslogs=0
 
 	# No longer deal with Normal days if No-Bells day today
 	if [[ "$nobellsdates " = *" $today "* ]]
@@ -208,8 +208,8 @@ Bellcheck(){ # IO:$nowold $daylogged
 		return
 	fi
 
-	# Log Normal day if nothing logged yet today or Additional schedule(s)
-	((!daylogged || additoday)) && daylogged=1 &&
+	# Log Normal day if nothing logged yet today
+	((!daylogged)) && daylogged=1 &&
 		Log "> $today Normal day:${schedules['_']}"
 
 	# If not rung yet and: additional schedule or no special schedules at all

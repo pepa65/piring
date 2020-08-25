@@ -2,11 +2,10 @@
 
 # splay - Play sound files over the amplifier
 
-[[ -z $1 ]] && echo "Must have sound files as arguments" && exit 1
-# Ring standard ringtone when called with '@'
-[[ $1 = @ ]] && i=soundfiles/0.ring || i="$@"
-
-relaypin=26 ampdelay=2 shutoffdelay=.5 on=0 off=1
+# Ring standard ringtone when called with no arguments
+self=$(readlink -e $0) dir=${self%/*}
+[[ $@ ]] && i="$@" || i="$dir/soundfiles/0.ring"
+relaypin=26 ampdelay=1 shutoffdelay=.3 on=0 off=1
 
 # For testing without gpio installed
 gpio=$(type -p gpio) || gpio(){ :;}

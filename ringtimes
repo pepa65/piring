@@ -14,17 +14,23 @@
 10:45
 10:50
 11:40   Lunch break
-12:00C4 Covid lunch signal
+12:00 4 Covid lunch signal
 12:20
 12:25
 13:15
 13:20
-14:00   (Elementary break)
+#14:00   (Elementary break: no bell)
 14:10   (Elementary break end)
 14:15   Shorter period
 14:55
 15:00   Shorter period
 15:40
+
+# Temporarily, school will end at 14:10
+14:15t- Shorter period
+14:55t-
+15:00t- Shorter period
+15:40t-
 
 # L: Late schedule 2020/2021
 #07:45L  Teacher training
