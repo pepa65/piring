@@ -18,6 +18,8 @@ buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,cancel,confirm = dir+'x.png',dir+'cancel.png',dir+'confirm.png'
 state,icon = dir+'state',dir+'icon.png'
+# If debug is False, no writing to stderr
+debug = True
 
 # Initialize display
 pg.display.init()
@@ -28,7 +30,7 @@ pg.mouse.set_visible(False)
 # Never use FULLSCREEN as it messes up the touch readings
 win = pg.display.set_mode((ww,wh),pg.NOFRAME)
 blank = False
-touched = time.time()
+touchtime = time.time()
 
 while True: # Never stop
 	selected = False # No button selected
@@ -38,42 +40,52 @@ while True: # Never stop
 	while not selected:
 		confirmed = False # No button confirmed
 		# Display buttons
+		blank = False
 		for b in buttons:
 			img = pg.image.load(dir+b[face])
 			win.blit(img,(b[x],b[y]))
 		pg.display.flip()
 
 		# Wait for one of the 4 buttons to be pressed
-		choice = False # No button pressed
-		while not choice:
+		chosen = False # No button pressed
+		while not chosen:
+			# Check timeout for screen blanking
+			if not blank and time.time() - touchtime > timeout:
+				blank = True
+				win.fill(bg)
+				pg.display.flip()
 			for event in pg.event.get():
 				if event.type == pg.MOUSEBUTTONDOWN:
 					# Middleclick terminates the interface
 					if event.button == middleclick:
-						os.write(2,'aborted'+os.linesep)
+						if debug: os.write(2,'aborted'+os.linesep)
 						pg.quit()
 						os._exit(1)
 					if event.button == leftclick:
-						touched = time.time()
+						touchtime = time.time()
+						# If screen blanked, don't register any selection
 						if blank:
 							blank = False
 							for b in buttons:
 								img = pg.image.load(dir+b[face])
 								win.blit(img,(b[x],b[y]))
 							pg.display.flip()
-							continue
+							continue # for event loop
+
+						# Examine selection
 						mx,my = event.pos
-						os.write(2,str(mx)+','+str(my)+os.linesep)
+						if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
 						# Check every button
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
 									# Pressed button found
-								choice=True
-								# Announcements don't need to be confirmed
-								if b[btn]=='1':
+								chosen = True
+								# Announcements selected without confirmation
+								if b[btn] == '1':
 									confirmed,selected = True,True
 								else:
-									# Show the choice with OK/cancel option
+									# Show the chosen with OK/cancel option
+									blank = False
 									win.fill(bg)
 									img = pg.image.load(dir+b[face])
 									win.blit(img,(cx,cy))
@@ -82,35 +94,30 @@ while True: # Never stop
 									img = pg.image.load(confirm)
 									win.blit(img,(10,210))
 									pg.display.flip()
-								break
-			# Check timeout
-			if not blank and time.time() - touched > timeout:
+								break # for b loop, (for event loop) + while not chosen loop
+
+		# Button chosen, get confirmation if needed
+		while not confirmed:
+			# Blank out and don't select if timeout exceeded
+			if not blank and time.time() - touchtime > timeout:
 				blank = True
+				confirmed = True
+				selected = False
 				win.fill(bg)
 				pg.display.flip()
-		# Get confirmation if needed
-		while not confirmed:
 			for event in pg.event.get():
 				if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
-					touched = time.time()
-					if blank:
-						blank = False
-						confirmed = True
-						selected = False
-						continue
-					# Either confirmed or cancelled
+					touchtime = time.time()
+					# Either selected or cancelled
 					confirmed = True
 					mx,my = event.pos
-					os.write(2,str(mx)+','+str(my)+os.linesep)
+					if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
 					if my>bh: # Lower half of the screen
-						# Confirmed
 						selected = True
-			# Check timeout
-			if not blank and time.time() - touched > timeout:
-				blank = True
-				win.fill(bg)
-				pg.display.flip()
-	# Show the chosen option with close button and pass it to ring-script
+					break # for event loop + while not confirmed loop
+
+	# Selected: show chosen option with close button and pass it to ring-script
+	Blank = False
 	img = pg.image.load(dir+b[facebig])
 	win.blit(img,(0,0))
 	img = pg.image.load(close)
@@ -121,12 +128,9 @@ while True: # Never stop
 	f.close()
 	# Wait for the close button to be pressed
 	closed = False
-	while not closed: # Close pressed?
+	while not closed: # Close pressed: screen touched
 		for event in pg.event.get():
 			if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
-				touched = time.time()
-				mx,my = event.pos
-				os.write(2,str(mx)+','+str(my)+os.linesep)
-				if mx>420 and my<260:
-					closed = True
-					break
+				touchtime = time.time()
+				closed = True
+				break # for event loop + while not closed loop

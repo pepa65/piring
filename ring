@@ -101,7 +101,7 @@ Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
 	sleep $ampdelay
 	# Ring bell
 	Log "- Ring Ringtone $ringcode on $sched at $now"
-	play -V0 --ignore-length -q "$snd" 2>/dev/null ||
+	play -V0 -q "$snd" 2>/dev/null ||
 		Log "* Error playing $snd at $now"
 	sleep $shutoffdelay
 	# Turn relay off
@@ -140,18 +140,18 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 	((relayon)) && return
 
 	# Turn on if announcing or sound file present
-	snd=$(readlink "$soundfiles/$button.alarm")
-	if ((button==1)) || [[ -f $snd ]]
+	snd=$(readlink -e "$soundfiles/$button.alarm")
+	if ((button==1)) || [[ $snd ]]
 	then
 		gpio -g write $relaypin $on && relayon=1 &&
 			Log "- Amplifier on" time && sleep $ampdelay ||
 			Log "* Error turning on amplifier" time
 	else
-		Log "* Missing sound file for alarm $button"
+		Log "* Missing sound file $soundfiles/$button.alarm"
 	fi
 
 	# Play sound file if present
-	if [[ -f $snd ]]
+	if [[ $snd ]]
 	then
 		play -V0 --ignore-length -q "$snd" 2>/dev/null &
 		playing=$!
