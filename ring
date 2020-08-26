@@ -328,7 +328,7 @@ done
 
 # Listing ringtone files
 rings=${ringcodes[@]} rings=$(sort -u <<<"${rings// /$'\n'}")
-for r in "$rings"
+for r in $rings
 do Log "> Ringtone $r: $(readlink "$soundfiles/$r.ring")"
 done
 
