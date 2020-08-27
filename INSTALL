@@ -1,29 +1,40 @@
 ## Installing piring
-
-# Hardware: Raspberry Pi (3B) with touchscreen (ADS7846) and relay board.
-# From www.lcdwiki.com/3.5inch_RPi_Display download UbuntuMate:18.04.2
-# and put it on the microSD. You might want to run raspi-config to fill out the
-# partition size, set passwords etc.:
-sudo raspi-config
-
+sudo -i
+# Hardware: Raspberry Pi (3B+) with touchscreen (ADS7846) and relay board.
+# OS: Ubuntu MATE 18.04.2
+# Write OS image to microSD card: https://ubuntu-mate.org/download/armhf/
 # Refresh the repo info, upgrade and install prerequisite packages and git:
-sudo apt update
-sudo apt install sox python-pygame tmux git
-sudo apt full-upgrade
-# There is a file clash with the bluez-firmware...
-sudo dpkg -i --force-overwrite /var/cache/apt/archives/linux-firmware-raspi2_1.20190819-0ubuntu0.18.04.1_armhf.deb
+apt update
+apt install sox python-pygame tmux git ssh
+apt full-upgrade
+# Set up the network and the ssh server for access in case of screen problems!
+
+# Get screen driver from https://github.com/lcdwiki/LCD-show-ubuntu
+git clone https://github.com/lcdwiki/LCD-show-ubuntu.git
+cd LCD-show-ubuntu
+./LCD35-show  # It will reboot
+
+# You might want to run raspi-config to set partition size, passwords etc.:
+#raspi-config
+
+# Tweak firmware:
+echo ads7846 >>/etc/modules
+echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
 
 # Allow user to run gpio binary:
 chmod u+s /usr/bin/gpio
 
 # Wisely pick your desired screensaver or power timeout, and no lock!
 # Allow autostart desktop through Lightdm:
-echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" |\
-	sudo tee -a /etc/lightdm/lightdm.conf
-sudo gpasswd -a pi nopasswdlogin
-sudo gpasswd -a pi audio
+echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" >\
+		/etc/lightdm/lightdm.conf
+gpasswd -a pi nopasswdlogin
 
-# Clone repo:
+# Allow audio use
+gpasswd -a pi audio
+
+# Clone this repo as user pi:
+sudo -l pi
 cd
 mkdir git
 cd git
@@ -33,9 +44,3 @@ cd piring
 # Setup autostart on (re)boot (authorization asked):
 source rc.local
 
-# Tweak firmware:
-echo ads7846 >>/etc/modules
-echo "# quicker sound
-hdmi_ignore_edid_audio=1
-disable_touchscreen=0
-enable_dpi_lcd=1" |sudo tee -a /boot/firmware/usercfg.txt

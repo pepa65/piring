@@ -56,14 +56,14 @@ while True: # Never stop
 				pg.display.flip()
 			for event in pg.event.get():
 				if event.type == pg.MOUSEBUTTONDOWN:
-					# Middleclick terminates the interface
+					# Middleclick terminates the interface but not the bell system
 					if event.button == middleclick:
 						if debug: os.write(2,'aborted'+os.linesep)
 						pg.quit()
 						os._exit(1)
 					if event.button == leftclick:
 						touchtime = time.time()
-						# If screen blanked, don't register any selection
+						# If screen blanked, don't register the next touch, just wake up
 						if blank:
 							blank = False
 							for b in buttons:
@@ -78,7 +78,7 @@ while True: # Never stop
 						# Check every button
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
-									# Pressed button found
+								# Pressed button found
 								chosen = True
 								# Announcements selected without confirmation
 								if b[btn] == '1':
@@ -116,7 +116,7 @@ while True: # Never stop
 						selected = True
 					break # for event loop + while not confirmed loop
 
-	# Selected: show chosen option with close button and pass it to ring-script
+	# Selected: show chosen option with close icon and pass it to ring-script
 	Blank = False
 	img = pg.image.load(dir+b[facebig])
 	win.blit(img,(0,0))
@@ -126,9 +126,9 @@ while True: # Never stop
 	f = open(state,'w')
 	f.write(b[btn])
 	f.close()
-	# Wait for the close button to be pressed
+	# Wait for the screen to be pressed
 	closed = False
-	while not closed: # Close pressed: screen touched
+	while not closed: # Screen touched: close
 		for event in pg.event.get():
 			if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
 				touchtime = time.time()
