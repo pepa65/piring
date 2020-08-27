@@ -8,7 +8,9 @@
 Pi with 3.5" 480x320 touchscreen and a relay that controls the
 power to the amplifier, and a audio lead from the pi's output to the
 amplifier's input, so that apart from ringing the various school bells,
-alarms can be sounded and announcements can be made.
+alarms can be sounded and announcements can be made. The relay is powered from
+the 5V pin(2) closest to the corner and ground by the pin (39) closest to the
+opposite corner. The signal pin (37) is next to the ground pin.
 
 ## Function
 The Normal schedule will ring on every weekday, unless that day is
