@@ -355,7 +355,7 @@ do
 		r=${ringcodes[$t$s]}
 		case $r in
 			0) scheds+=" $t" ;;
-			*) scheds+=" ${t},$r"
+			*) scheds+=" ${t}-$r"
 		esac
 	done
 	Log "> $scheds"
