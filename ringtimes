@@ -4,84 +4,55 @@
 
 # Normal schedule 2020/2021
 07:55
-08:00
+08:00   1st period
 08:50
-08:55
+08:55   2nd period
 09:45   Morning break
 09:50
-09:55   Elementary break end!
+09:55   3rd period (Elementary break end)
 10:00
 10:45
-10:50
+10:50   4th period
 11:40   Lunch break
-12:00 4 Covid lunch signal
+12:00 4 Covid lunch whistle
 12:20
-12:25
+12:25   5th period
 13:15
-13:20
-#14:00   (Elementary break: no bell)
+13:20   6th period
+14:00   (Elementary break: no bell)
 14:10   (Elementary break end)
-14:15   Shorter period
+14:15   7th (shorter) period
 14:55
-15:00   Shorter period
+15:00   8th (shorter) period
 15:40
-
-# Temporarily, school will end at 14:10
-14:15t- Shorter period
-14:55t-
-15:00t- Shorter period
-15:40t-
 
 # L: Late schedule 2020/2021
 #07:45L  Teacher training
 #08:45L
 08:55L 
-09:00L
+09:00L  1st period
 09:40L
-09:45L
+09:45L  2nd period
 10:25L  Morning break
 10:30L
-10:35L
+10:35L  3rd period
 11:15L
-11:20L
+11:20L  4th period
 12:00L  Lunch break
+12:20 4 Covid lunch whistle
 12:40L
-12:45L
+12:45L  5th period
 13:25L
-13:30L
+13:30L  6th period
 14:10L
-14:15L
+14:15L  7th period
 14:55L
-15:00L
+15:00L  8th period
 15:40L
 
-# E: Extra 8 am with Late schedule
-07:56E
-08:00E
+# School ended at 14:10 in the first 2 weeks
+14:15t- Shorter period
+14:55t-
+15:00t- Shorter period
+15:40t-
 
-# H: Open House 2019 additional evening schedule
-18:30H2
-19:00H2
-19:12H2
-19:19H2
-19:24H2
-19:31H2
-19:36H2
-19:43H2
-19:48H2
-19:55H2
-20:00H2
-20:07H2
-20:12H2
-20:19H2
-20:24H2
-20:31H2
-21:00H2
-
-# l: Shortened lunch on 2019-12-18, 2020-01-14
-12:20l
-# m: Shortened lunch on Late start on 2020-01-10
-12:44m
-# S: Prolonged lunch on 2019-10-02
-12:40S-
-12:44S-
