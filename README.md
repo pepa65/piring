@@ -60,7 +60,7 @@ announcement or play (alarm) sound files.
 
 ## Required
 wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
-[$buttons: python2.7 pygame] [`rc.local`: tmux(optional)]
+[$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
 
 ## Deployment
 See file `INSTALL`
