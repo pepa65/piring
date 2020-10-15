@@ -355,7 +355,7 @@ do
 		r=${ringcodes[$t$s]}
 		case $r in
 			0) scheds+=" $t" ;;
-			*) scheds+=" ${t},$r"
+			*) scheds+=" ${t}-$r"
 		esac
 	done
 	Log "> $scheds"
@@ -371,6 +371,7 @@ Log "> All input files are valid"
 	Log "* Essential package 'wiringpi' (application 'gpio') not installed"
 
 # Starting the button interface
+[[ -f $state ]] || echo -n "0">"$state"
 DISPLAY=$display $buttons 2>/tmp/buttons.log &
 buttonspid=$!
 (($?)) && Log "* Can't start 'buttons'" && exit 3

@@ -2,6 +2,29 @@
 ## i: [+] (= in addition to Normal schedule, otherwise replaces Normal)
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
 
+# 2020/2021
+2020-08-25/2020-09-04+t Shorter days: in Normal suppress 14:15/55 15:00/40
+2020-09-24+H Open House 2020
+2020-09-25 L Late start
+2020-10-16 L Late start
+2020-10-22   In-service day
+2020-10-23   Closed
+2020-10-28 B Buddy classes
+2020-10-28 L Buddy classes
+2020-11-06 L Late start
+2020-11-27+T Thanksgiving no classes after lunch
+2020-12-10   Closed
+2020-12-11   Closed
+2020-12-19/2021-01-03   Christmas break
+2021-01-04   In-service day
+2021-01-08 L Late start
+2021-02-19 L Late start
+2021-03-12 L Late start
+2021-03-19   In-service day
+2021-05-14 L Late start
+2021-05-31   In-service day
+
+# 2019/2020
 2019-08-20
 2019-09-06 L Late start
 2019-09-19+H Open House (additional)
@@ -32,15 +55,3 @@
 #2020-05-01 L Late start irrelevant
 #2020-06-01   In-service day cancelled
 #2020-06-01/2020-08-26   Summer break
-2020-08-25/2020-09-04+t Shorter days: in Normal suppress 14:15/55 15:00/40
-2020-09-11 L Late start
-2020-10-22   In-service day
-2020-10-16 L Late start
-2020-11-06 L Late start
-2021-01-08 L Late start
-2021-01-04   In-service day
-2021-02-19 L Late start
-2021-03-12 L Late start
-2021-03-19   In-service day
-2021-05-14 L Late start
-2021-05-31   In-service day
