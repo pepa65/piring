@@ -50,22 +50,33 @@
 15:00L  8th period
 15:40L
 
-# Buddy classes before Late start
+# B: Buddy classes before Late start
 07:55B
 08:00B
 
-# Thanksgiving: no classes after lunch
-12:20T-
-12:25T-
-13:15T-
-13:20T-
-14:10T-
-14:15T-
-14:55T-
-15:00T-
-15:40T-
+# P: Normal schedule, but no classes after lunch
+12:20P-
+12:25P-
+13:15P-
+13:20P-
+14:10P-
+14:15P-
+14:55P-
+15:00P-
+15:40P-
 
-# Open House 2020
+# p: Late schedule, but no classes after lunch
+12:40p-
+12:45p-
+13:25p-
+13:30p-
+14:10p-
+14:15p-
+14:55p-
+15:00p-
+15:40p-
+
+# H: Open House 2020
 18:30H
 19:00H
 19:07H5
@@ -84,7 +95,7 @@
 20:24H
 20:31H
 
-# School ended at 14:10 in the first 2 weeks
+# t: School ended at 14:10 in the first 2 weeks
 14:15t- Shorter period
 14:55t-
 15:00t- Shorter period
