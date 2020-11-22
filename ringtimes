@@ -76,6 +76,14 @@
 15:00p-
 15:40p-
 
+# T: Normal schedule, but final bell at 14:00
+14:00t
+14:10t-
+14:15t-
+14:55t-
+15:00t-
+15:40t-
+
 # H: Open House 2020
 18:30H
 19:00H
