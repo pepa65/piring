@@ -76,13 +76,17 @@
 15:00p-
 15:40p-
 
-# T: Normal schedule, but final bell at 14:00
-14:00t
-14:10t-
-14:15t-
-14:55t-
-15:00t-
-15:40t-
+# T: Normal schedule until lunch, end of Q2 afternoon
+12:25T-
+13:10T  Call to auditorium
+13:15T-
+13:20T-
+14:00T  Dismiss school
+14:10T-
+14:15T-
+14:55T-
+15:00T-
+15:40T-
 
 # H: Open House 2020
 18:30H
