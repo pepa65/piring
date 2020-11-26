@@ -48,9 +48,9 @@ announcement or play (alarm) sound files.
   time slot is muted regardless of any other schedules. In general, the `R`
   refers to the ringtone file `R.ring`.
   All characters after position 7 are ignored as a comment.
-- $ringdates (optional): lines of `YYYY-MM-DDis` or `YYYY-MM-DD/YYYY-MM-DDis`
+- $ringdates (optional): lines of `YYYY-MM-DDsa` or `YYYY-MM-DD/YYYY-MM-DDsa`
   where `s` is either space/empty (for No-Bells dates) or the alphabetical
-  Special schedule code. The `i` can be empty/space or `+` (means in addition
+  Special schedule code. The `a` can be empty/space or `+` (means in addition
   to the Normal schedule, otherwise the Normal schedule is replaced by the
   Special schedule). The double date format is the beginning and end of an
   inclusive date range.

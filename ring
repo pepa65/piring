@@ -45,9 +45,9 @@ set +xv
 #   time slot is muted regardless of any other schedules. In general, the `R`
 #   refers to the ringtone file `R.ring`.
 #   All characters after position 7 are ignored as a comment.
-# - $ringdates (optional): lines of `YYYY-MM-DDis` or `YYYY-MM-DD/YYYY-MM-DDis`
+# - $ringdates (optional): lines of `YYYY-MM-DDsa` or `YYYY-MM-DD/YYYY-MM-DDsa`
 #   where `s` is either space/empty (for No-Bells dates) or the alphabetical
-#   Special schedule code. The `i` can be empty/space or `+` (means in addition
+#   Special schedule code. The `a` can be empty/space or `+` (means in addition
 #   to the Normal schedule, otherwise the Normal schedule is replaced by the
 #   Special schedule). The double date format is the beginning and end of an
 #   inclusive date range.
@@ -255,42 +255,42 @@ today=$(date +'%Y-%m-%d')
 [[ -f "$ringdates" ]] && mapfile -O 1 -t dates <"$ringdates" || dates=()
 for i in "${!dates[@]}"
 do # Validate and split dates
-	line=${dates[$i]} date=${line:0:10} idate=${line:10:1}
+	line=${dates[$i]} date=${line:0:10} s=${line:10:1}
 	# Skip empty lines and comments
 	[[ -z ${line// } || ${line:0:1} = '#' ]] && continue
 	[[ $date = 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ||
 		Error "Date format should be '20YY-DD-MM', not: $date"
 	date -d "$date" &>/dev/null || Error "Invalid date: '$date'"
-	if [[ $idate = / ]]
+	if [[ $s = / ]]
 	then
 		date2=${line:11:10}
 		[[ $date2 = 20[0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]] ||
 			Error "Date format should be '20YY-DD-MM', not: $date2"
 		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
 		[[ $date > $date2 ]] && Error "The first date can't be after the second"
-		idate=${line:21:1} s=${line:22:1}
-		[[ ${idate// } && $idate != '+' ]] &&
-			Error "After the dates only space or '+' allowed, not '$idate'"
+		s=${line:21:1} a=${line:22:1}
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
+		[[ ${a// } && $a != '+' ]] &&
+			Error "After the schedule only space or '+' allowed, not '$a'"
 		while [[ ! $date > $date2 ]]
 		do
 			if [[ ! $date < $today ]]
 			then
-				[[ ${s// } ]] && specialdates[$s]+=" $date" || nobellsdates+=" $date"
-				[[ $idate = '+' ]] && additionals[$s]='+'
+				[[ ${s// } ]] && specialdates[$s]+=" $date" additionals[$s]=${a// } ||
+					nobellsdates+=" $date"
 			fi
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
 	else
-		[[ ${idate// } && $idate != '+' ]] &&
-			Error "After the date only space, '/' or '+' allowed, not '$idate'"
-		s=${line:11:1}
 		[[ ${s// } && $s != [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
+		a=${line:11:1}
+		[[ ${a// } && $a != '+' ]] &&
+			Error "After the schedule only space or '+' allowed, not '$a'"
 		[[ $date < $today ]] && continue
-		[[ ${s// } ]] && specialdates[$s]+=" $date" || nobellsdates+=" $date"
-		[[ $idate = '+' ]] && additionals[$s]='+'
+		[[ ${s// } ]] && specialdates[$s]+=" $date" additionals[$s]=${a// } ||
+			nobellsdates+=" $date"
 	fi
 done
 ((error==1)) && s= || s=s

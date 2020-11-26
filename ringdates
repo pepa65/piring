@@ -1,58 +1,58 @@
-## YYYY-MM-DDis | YYYY-MM-DD/YYYY-MM-DDis (= date | start/end-date)
-## i: [+] (= in addition to Normal schedule, otherwise replaces Normal)
+## YYYY-MM-DDsa | YYYY-MM-DD/YYYY-MM-DDsa (= date | start/end-date)
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
+## a: [+] (= in addition to Normal schedule, otherwise replaces Normal)
 
 # 2020/2021
-2020-08-25/2020-09-04+t Shorter days: Last bell at 14:10
-2020-09-24+H Open House 2020
-2020-09-25 L Late start
-2020-10-16 L Late start
+2020-08-25/2020-09-04t+ Shorter days: Last bell at 14:10
+2020-09-24H+ Open House 2020
+2020-09-25L  Late start
+2020-10-16L  Late start
 2020-10-22   In-service day
 2020-10-23   Closed
-2020-10-28 B Buddy classes
-2020-10-28 L Buddy classes
-2020-11-06 L Late start
-2020-11-06+p Electricity outage in the afternoon
-2020-11-20 L Late start
-2020-11-26+P Thanksgiving no classes after lunch
+2020-10-28B  Buddy classes
+2020-10-28L  Buddy classes
+2020-11-06L  Late start
+2020-11-06p+ Electricity outage in the afternoon
+2020-11-20L  Late start
+2020-11-26P+ Thanksgiving no classes after lunch
 2020-12-10   Closed
 2020-12-11   Closed
-2020-12-18+T School ends at 14:00
+2020-12-18T+ School ends at 14:00
 2020-12-19/2021-01-03   Christmas break
 2021-01-04   In-service day
-2021-01-08 L Late start
-2021-02-19 L Late start
-2021-03-12 L Late start
+2021-01-08L  Late start
+2021-02-19L  Late start
+2021-03-12L  Late start
 2021-03-19   In-service day
-2021-05-14 L Late start
+2021-05-14L  Late start
 2021-05-31   In-service day
 
 # 2019/2020
 2019-08-20
-2019-09-06 L Late start
-2019-09-19+H Open House (additional)
-2019-10-02+S Prolonged lunch: mute 12:40+12:44
-2019-10-04 L Late start
+2019-09-06L  Late start
+2019-09-19H+  Open House (additional)
+2019-10-02S+  Prolonged lunch: mute 12:40+12:44
+2019-10-04L  Late start
 2019-10-14
 2019-10-15   In-service day
 2019-10-23
-2019-10-31 E Extra 8 am
-2019-10-31 L Late start!
-2019-11-22 L Late start
+2019-10-31E  Extra 8 am
+2019-10-31L  Late start!
+2019-11-22L  Late start
 2019-11-26   Pole-moving (no power)
 2019-12-05
 2019-12-10
-2019-12-18+l Shortened lunch, extra bell at 12:20
+2019-12-18l+ Shortened lunch, extra bell at 12:20
 2019-12-23/2020-01-06   Christmas break
-2020-01-10 L Late start
-2020-01-10+m Late start shortened lunch, extra bell at 12:44
-2020-01-14+l Shortened lunch, extra bell at 12:20
+2020-01-10L  Late start
+2020-01-10m+ Late start shortened lunch, extra bell at 12:44
+2020-01-14l+ Shortened lunch, extra bell at 12:20
 2020-01-15   Sports day
 2020-01-16   In-service day
 2020-02-14
 2020-02-17
-2020-02-21 L Late start
-2020-03-13 L Late start
+2020-02-21L  Late start
+2020-03-13L  Late start
 2020-03-18/2020-08-24   CoViD-19 break, School-at-home Q4, Summer break
 #2020-03-23   In-service day cancelled
 #2020-05-01 L Late start irrelevant
