@@ -1,6 +1,6 @@
-## YYYY-MM-DDsa | YYYY-MM-DD/YYYY-MM-DDsa (= date | start/end-date)
+## YYYY-MM-DDsA | YYYY-MM-DD/YYYY-MM-DDsA (= date | start/end-date)
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
-## a: [+] (= in addition to Normal schedule, otherwise replaces Normal)
+## A: [+] (= in addition to Normal schedule, otherwise replaces Normal)
 
 # 2020/2021
 2020-08-25/2020-09-04t+ Shorter days: Last bell at 14:10
@@ -9,7 +9,7 @@
 2020-10-16L  Late start
 2020-10-22   In-service day
 2020-10-23   Closed
-2020-10-28B  Buddy classes
+2020-10-28B+ Buddy classes
 2020-10-28L  Buddy classes
 2020-11-06L  Late start
 2020-11-06p+ Electricity outage in the afternoon
@@ -36,7 +36,7 @@
 2019-10-14
 2019-10-15   In-service day
 2019-10-23
-2019-10-31E  Extra 8 am
+2019-10-31E+ Extra 8 am
 2019-10-31L  Late start!
 2019-11-22L  Late start
 2019-11-26   Pole-moving (no power)

@@ -50,11 +50,11 @@
 15:00L  8th period
 15:40L
 
-# B: Buddy classes before Late start
+# B+: Buddy classes before Late start
 07:55B
 08:00B
 
-# P: Normal schedule, but no classes after lunch
+# P+: Normal schedule, but no classes after lunch
 #12:20P-
 12:25P-
 13:15P-
@@ -65,7 +65,7 @@
 15:00P-
 15:40P-
 
-# p: Late schedule, but no classes after lunch
+# p+: Late schedule, but no classes after lunch
 12:40p-
 12:45p-
 13:25p-
@@ -76,11 +76,9 @@
 15:00p-
 15:40p-
 
-# T: Normal schedule until lunch, end of Q2 afternoon
-12:25T-
-13:10T  Call to auditorium
-13:15T-
-13:20T-
+# T+: Normal schedule until lunch, end of Q2 afternoon
+#13:15  Call to auditorium
+#13:20  Final activities
 14:00T  Dismiss school
 14:10T-
 14:15T-
@@ -88,7 +86,7 @@
 15:00T-
 15:40T-
 
-# H: Open House 2020
+# H+: Open House 2020
 18:30H
 19:00H
 19:07H5
@@ -107,7 +105,7 @@
 20:24H
 20:31H
 
-# t: School ended at 14:10 in the first 2 weeks
+# t+: School ended at 14:10 in the first 2 weeks
 14:15t- Shorter period
 14:55t-
 15:00t- Shorter period
