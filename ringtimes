@@ -1,6 +1,6 @@
 ## HH:MMsR (= time)
-## s: Schedule code (Normal = space/empty | Special = alphabetical)
-## R: Ringtone code (numerical | space/empty = 0 | '-' = mute)
+## s: space|empty (= Normal schedule) | alphabetical (= Special schedule code)
+## R: numerical (= Ringtone code) | space|empty (= Ringtone code 0) | - (= mute)
 
 # Normal schedule 2020/2021
 07:55
@@ -10,7 +10,7 @@
 09:45   Morning break
 09:50
 09:55   3rd period (Elementary break end)
-10:00
+10:00   (Elementary restart)
 10:45
 10:50   4th period
 11:40   Lunch break
@@ -24,7 +24,7 @@
 14:15   7th (shorter) period
 14:55
 15:00   8th (shorter) period
-15:40
+15:40   School end
 
 # L: Late schedule 2020/2021
 #07:45L  Teacher training
@@ -48,7 +48,7 @@
 14:15L  7th period
 14:55L
 15:00L  8th period
-15:40L
+15:40L  School end
 
 # X: No regular classes
 
@@ -116,8 +116,8 @@
 20:31H
 
 # t+: School ended at 14:10 in the first 2 weeks
-14:15t- Shorter period
+14:15t- 7th (shorter) period
 14:55t-
-15:00t- Shorter period
-15:40t-
+15:00t- 8th (shorter) period
+15:40t- School end
 

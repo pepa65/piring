@@ -1,6 +1,6 @@
-## YYYY-MM-DDsA | YYYY-MM-DD/YYYY-MM-DDsA (= date | start/end-date)
+## YYYY-MM-DDsP | YYYY-MM-DD/YYYY-MM-DDsP (= date / start/end-date)
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
-## A: [+] (= in addition to Normal schedule, otherwise replaces Normal)
+## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
 
 # 2020/2021
 2020-08-25/2020-09-04t+ Shorter days: Last bell at 14:10
@@ -57,7 +57,7 @@
 2020-02-17
 2020-02-21L  Late start
 2020-03-13L  Late start
-2020-03-18/2020-08-24   CoViD-19 break, School-at-home Q4, Summer break
+2020-03-18/2020-08-24   Covid-19 break + School-at-home Q4 + Summer break
 #2020-03-23X  In-service day cancelled
 #2020-05-01L  Late start irrelevant
 #2020-06-01X  In-service day cancelled

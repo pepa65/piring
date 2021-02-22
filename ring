@@ -21,12 +21,12 @@ set +xv
 #  The touchscreen can be used to turn on the amplifier to make an
 #  announcement or play (alarm) sound files.
 # - The input files $ringdates and $ringtimes are read from the same directory
-#   as where the $ring script resides, the $buttons script is in directory
+#   as where the $ring script resides, the $buttons script is in subdirectory
 #   $touchscreen together with all images that are part of it,
-#   and all the sound files reside in directory $soundfiles.
+#   and all the sound files reside in subdirectory $soundfiles.
 # - The input files $ringtimes and $ringdates are read and checked for
 #   proper syntax & semantics.
-# - The ringtone sound files referenced in $ringtimes are symlinks `R.ring`
+# - The Ringtone sound files referenced in $ringtimes are symlinks `R.ring`
 #   in where `R` is the digit referenced (`0` is the default ringtone);
 #   when referenced they need to be present in $soundfiles.
 # - The optional (alarm)button sound files are symlinks `B.alarm` (B:1..4)
@@ -43,14 +43,13 @@ set +xv
 #   `R` is the numerical single digit Ringtone code. If `R` is space/empty it
 #   references the default ringtone file `0.ring`. If `R` is `-` it means that
 #   time slot is muted regardless of any other schedules. In general, the `R`
-#   refers to the ringtone file `R.ring`.
+#   (numerical) refers to the ringtone file `R.ring`.
 #   All characters after position 7 are ignored as a comment.
-# - $ringdates (optional): lines of `YYYY-MM-DDsA` or `YYYY-MM-DD/YYYY-MM-DDsA`
+# - $ringdates (optional): lines of `YYYY-MM-DDsP` or `YYYY-MM-DD/YYYY-MM-DDsP`
 #   where `s` is either space/empty (for No-Bells dates) or the alphabetical
-#   Special schedule code. The `A` can be empty/space or `+` (means in Addition
-#   to the Normal schedule, otherwise the Normal schedule is replaced by the
-#   Special schedule). The double date format is the beginning and end of an
-#   inclusive date range.
+#   Special schedule code. The `P` can be empty/space (replace the Normal
+#   schedule) or `+` (in Addition to the Normal schedule). The double date
+#   format is the beginning and end of an inclusive date range.
 #   There can be multiple Special schedules for the same date, and all get rung
 #   (even if that date is also a No-Bells date!).
 #   All characters after position 12 resp. 23 are ignored as a comment.

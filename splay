@@ -1,6 +1,8 @@
 #!/bin/bash
 
 # splay - Play sound files over the amplifier
+# Usage:  splay [<file> ...]
+#   if no <file> is given, 0.ring is played
 
 # Ring standard ringtone when called with no arguments
 self=$(readlink -e $0) dir=${self%/*}
@@ -15,8 +17,7 @@ gpio export $relaypin out
 gpio -g write $relaypin $on
 sleep $ampdelay
 for f in "$i"
-do [[ -f $f ]] && play -V0 -q "$f" ||
-		echo "Argument is not a file: $f"
+do [[ -f $f ]] && play -V0 -q "$f" || echo "Not a soundfile: $f"
 done
 sleep $shutoffdelay
 gpio -g write $relaypin $off
