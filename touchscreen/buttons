@@ -7,6 +7,7 @@ import os
 import time
 
 timeout = 30 # Seconds
+polldelay = .2 # Seconds
 touchscreen,driver = '/dev/input/by-path/platform-3f204000.spi-event','ads7846'
 os.environ['SDL_MOUSEDRV'] = driver
 os.environ['SDL_MOUSEDEV'] = touchscreen
@@ -37,7 +38,7 @@ while True: # Never stop
 	f = open(state,'w')
 	f.write('0')
 	f.close()
-	while not selected:
+	while not selected: # Wait for selection
 		confirmed = False # No button confirmed
 		# Display buttons
 		blank = False
@@ -47,8 +48,9 @@ while True: # Never stop
 		pg.display.flip()
 
 		# Wait for one of the 4 buttons to be pressed
-		chosen = False # No button pressed
-		while not chosen:
+		pressed = False # No button pressed
+		while not pressed:
+			time.sleep(polldelay)
 			# Check timeout for screen blanking
 			if not blank and time.time() - touchtime > timeout:
 				blank = True
@@ -79,12 +81,12 @@ while True: # Never stop
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
 								# Pressed button found
-								chosen = True
+								pressed = True
 								# Announcements selected without confirmation
 								if b[btn] == '1':
 									confirmed,selected = True,True
 								else:
-									# Show the chosen with OK/cancel option
+									# Show the pressed button with OK/cancel options
 									blank = False
 									win.fill(bg)
 									img = pg.image.load(dir+b[face])
@@ -94,10 +96,11 @@ while True: # Never stop
 									img = pg.image.load(confirm)
 									win.blit(img,(10,210))
 									pg.display.flip()
-								break # for b loop, (for event loop) + while not chosen loop
+								break # for b loop, (for event loop) + while not pressed loop
 
-		# Button chosen, get confirmation if needed
-		while not confirmed:
+		# Button pressed, get confirmation if needed
+		while not confirmed: # Wait for confirmation of alarm
+			time.sleep(polldelay)
 			# Blank out and don't select if timeout exceeded
 			if not blank and time.time() - touchtime > timeout:
 				blank = True
@@ -116,7 +119,7 @@ while True: # Never stop
 						selected = True
 					break # for event loop + while not confirmed loop
 
-	# Selected: show chosen option with close icon and pass it to ring-script
+	# Selected: show selected button with close icon and pass it to ring-script
 	Blank = False
 	img = pg.image.load(dir+b[facebig])
 	win.blit(img,(0,0))
@@ -128,7 +131,8 @@ while True: # Never stop
 	f.close()
 	# Wait for the screen to be pressed
 	closed = False
-	while not closed: # Screen touched: close
+	while not closed: # Wait for close (screen press)
+		time.sleep(polldelay)
 		for event in pg.event.get():
 			if event.type == pg.MOUSEBUTTONDOWN and event.button == leftclick:
 				touchtime = time.time()
