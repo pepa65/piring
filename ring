@@ -276,8 +276,10 @@ do # Validate and split dates
 		do
 			if [[ ! $date < $today ]]
 			then
-				[[ ${s// } ]] && specialdates[$s]+=" $date" additionals[$s]=${a// } ||
-					nobellsdates+=" $date"
+				if [[ ${s// } ]]
+				then specialdates[$s]+=" $date" additionals[$s]=${a// }
+				else (($(date -d $date +'%u')<6)) && nobellsdates+=" $date"
+				fi
 			fi
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
@@ -288,8 +290,10 @@ do # Validate and split dates
 		[[ ${a// } && $a != '+' ]] &&
 			Error "After the schedule only space or '+' allowed, not '$a'"
 		[[ $date < $today ]] && continue
-		[[ ${s// } ]] && specialdates[$s]+=" $date" additionals[$s]=${a// } ||
-			nobellsdates+=" $date"
+		if [[ ${s// } ]]
+		then specialdates[$s]+=" $date" additionals[$s]=${a// }
+		else (($(date -d $date +'%u')<6)) && nobellsdates+=" $date"
+		fi
 	fi
 done
 ((error==1)) && s= || s=s
@@ -371,10 +375,11 @@ Log "> All input files are valid"
 
 # Starting the button interface
 [[ -f $state ]] || echo -n "0">"$state"
-DISPLAY=$display $buttons 2>/tmp/buttons.log &
+DISPLAY=$display $buttons &>/tmp/buttons.log &
 buttonspid=$!
-(($?)) && Log "* Can't start 'buttons'" && exit 3
-Log "> Touchscreen ready"
+sleep 1
+! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
+Log "> Touchscreen ready, pid: $buttonspid"
 
 # Main loop
 Log "# Ring program starting" time
