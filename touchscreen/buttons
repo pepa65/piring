@@ -16,6 +16,7 @@ z,bw,bh,cx,cy = 0,ww/2,wh/2,ww/4,wh/4
 btn,x,y,face,facebig = 0,1,2,3,4
 buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
 	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
+logo = 'logo.png'
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,cancel,confirm = dir+'x.png',dir+'cancel.png',dir+'confirm.png'
 state,icon = dir+'state',dir+'icon.png'
@@ -45,6 +46,7 @@ while True: # Never stop
 		for b in buttons:
 			img = pg.image.load(dir+b[face])
 			win.blit(img,(b[x],b[y]))
+		win.blit(pg.image.load(dir+logo),(bw-28,bh-30))
 		pg.display.flip()
 
 		# Wait for one of the 4 buttons to be pressed
