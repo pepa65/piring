@@ -73,6 +73,7 @@ while True: # Never stop
 							for b in buttons:
 								img = pg.image.load(dir+b[face])
 								win.blit(img,(b[x],b[y]))
+							win.blit(pg.image.load(dir+logo),(bw-28,bh-30))
 							pg.display.flip()
 							continue # for event loop
 
