@@ -1,7 +1,7 @@
 ## Installing piring
 sudo -i
-# Hardware: Raspberry Pi (3B+) with touchscreen (ADS7846) and relay board.
-# OS: Ubuntu MATE 18.04.2
+# Hardware: Raspberry Pi (3B) with touchscreen (ADS7846) and relay board.
+# OS: Ubuntu MATE 18.04.2 / Debian / RaspberryOS
 # Write OS image to microSD card: https://ubuntu-mate.org/download/armhf/
 # Refresh the repo info, upgrade and install prerequisite packages and git:
 apt update

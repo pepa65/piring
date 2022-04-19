@@ -4,8 +4,8 @@
 ## Usage
 `ring`
 
-## Hardware
-Pi with 3.5" 480x320 touchscreen and a relay that controls the
+## Hardware and pinout
+Raspberry Pi with 3.5" 480x320 touchscreen and a relay that controls the
 power to the amplifier, and a audio lead from the pi's output to the
 amplifier's input, so that apart from ringing the various school bells,
 alarms can be sounded and announcements can be made. The relay is powered from

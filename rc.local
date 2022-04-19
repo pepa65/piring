@@ -19,5 +19,6 @@ if [[ -f $rc ]] &&
 sudo chmod +x /etc/rc.local
 
 # Please check `/etc/rc.local` to make sure you're starting `ring` only once!
-# Some versions of systemd need more work to start `/etc.local` on boot!
+# Some versions of systemd need more work to start `/etc.local` on boot! In
+# that case, running from @reboot with cron might be easier.
 
