@@ -1,30 +1,32 @@
 ## Installing piring
+# Hardware: Raspberry Pi with 3.5" touchscreen (ADS7846) and relay board.
+
+# Put RaspberryOS on an SD card: https://www.raspberrypi.com/software/operating-systems/
+
+# Boot up, choose username pi and initialize:
 sudo -i
-# Hardware: Raspberry Pi (3B) with touchscreen (ADS7846) and relay board.
-# OS: Ubuntu MATE 18.04.2 / Debian / RaspberryOS
-# Write OS image to microSD card: https://ubuntu-mate.org/download/armhf/
-# Refresh the repo info, upgrade and install prerequisite packages and git:
+raspi-config
+# Set the desired screensaver timeout, and no lock!
+# Make sure ssh access is workable in case the screen drivers have problems!
+
+# Refresh the repo info, upgrade and install prerequisite packages and git
 apt update
-apt install sox python-pygame tmux git ssh
+apt install sox python3-pygame tmux git
 apt full-upgrade
-# Set up the network and the ssh server for access in case of screen problems!
 
-# Get screen driver from https://github.com/lcdwiki/LCD-show-ubuntu
-git clone https://github.com/lcdwiki/LCD-show-ubuntu.git
-cd LCD-show-ubuntu
-./LCD35-show  # It will reboot
+# Allow user to run raspi-gpio binary:
+chmod u+s /usr/bin/raspi-gpio
 
-# You might want to run raspi-config to set partition size, passwords etc.:
-#raspi-config
+# Install screen driver
+git clone https://github.com/goodtft/LCD-show.git
+chmod -R 755 LCD-show
+cd LCD-show
+./LCD35-show  # Leads to reboot
 
 # Tweak firmware:
 echo ads7846 >>/etc/modules
 echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
 
-# Allow user to run gpio binary:
-chmod u+s /usr/bin/gpio
-
-# Wisely pick your desired screensaver or power timeout, and no lock!
 # Allow autostart desktop through Lightdm:
 echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" >\
 		/etc/lightdm/lightdm.conf
@@ -34,13 +36,13 @@ gpasswd -a pi nopasswdlogin
 gpasswd -a pi audio
 
 # Clone this repo as user pi:
-sudo -l pi
+sudo -u pi bash
 cd
 mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
 cd piring
 
-# Setup autostart on (re)boot (authorization asked):
-source rc.local
+# Set autostart with crontab @reboot
+echo "@reboot  $HOME/git/piring/atreboot"
 

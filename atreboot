@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# atreboot - Run at reboot by crontab
+
+cd
+/usr/bin/tmux new-s -d "git/piring/ring |tee -a ring.log"

@@ -54,15 +54,10 @@ set +xv
 #   (even if that date is also a No-Bells date!).
 #   All characters after position 12 resp. 23 are ignored as a comment.
 #
-# Required: wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
-#  [$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
+# Required: raspi-gpio coreutils(sleep fold readlink) sox(play) date
+#  [$buttons: python3-pygame] [installation: tmux(optional)]
 #
-# Deployment:
-#  To autostart on reboot, source the script `rc.local`. In the included file
-#  are two deployment examples given.
-#
-# License:
-#  GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
+# License: GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
 
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
@@ -73,6 +68,7 @@ relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0
 ringtimes=ringtimes ringdates=ringdates
 touchscreen=touchscreen soundfiles=soundfiles
 ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state
+touchlog=$touchscreen/touch.log
 
 Log(){ # $1:message $2(optional):timeflag
 	local datetime
@@ -95,7 +91,7 @@ Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
 	[[ $ringcode ]] || ringcode=0
 	snd=$soundfiles/$ringcode.ring
 	# Turn relay on
-	gpio -g write $relaypin $on && relayon=1 ||
+	raspi-gpio set $relaypin $on && relayon=1 ||
 		Log "* Error turning on amplifier" time
 	sleep $ampdelay
 	# Ring bell
@@ -104,7 +100,7 @@ Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
 		Log "* Error playing $snd at $now"
 	sleep $shutoffdelay
 	# Turn relay off
-	gpio -g write $relaypin $off && relayon=0 ||
+	raspi-gpio set $relaypin $off && relayon=0 ||
 		Log "* Error turning off amplifier" time
 }
 
@@ -128,7 +124,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 			Log "* Interrupted sound from process $playing" time
 		fi
 		sleep $shutoffdelay
-		gpio -g write $relaypin $off && relayon=0 &&
+		raspi-gpio set $relaypin $off && relayon=0 &&
 			Log "- Amplifier off" time ||
 			Log "* Error turning off amplifier" time
 		playing=0
@@ -142,7 +138,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 	snd=$(readlink -e "$soundfiles/$button.alarm")
 	if ((button==1)) || [[ $snd ]]
 	then
-		gpio -g write $relaypin $on && relayon=1 &&
+		raspi-gpio set $relaypin $on && relayon=1 &&
 			Log "- Amplifier on" time && sleep $ampdelay ||
 			Log "* Error turning on amplifier" time
 	else
@@ -219,8 +215,7 @@ Bellcheck(){ # IO:nowold,daylogged
 }
 
 Exittrap(){ # I:relaypin,playing
-	gpio -g write $relaypin $off
-	gpio unexportall
+	raspi-gpio set $relaypin $off
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
@@ -229,7 +224,7 @@ Exittrap(){ # I:relaypin,playing
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
 kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 buttonspid=
+on=dh off=dl output=op buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -238,13 +233,13 @@ Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # For testing without gpio installed
-gpio=$(type -p gpio) || gpio(){ :;}
+gpio=$(type -p raspi-gpio) || raspi-gpio(){ :;}
 
 # Setting up pins
-! gpio export $relaypin out &&
+! raspi-gpio set $relaypin $output &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
-gpio -g write $relaypin $off && relayon=0 ||
+raspi-gpio set $relaypin $off && relayon=0 ||
 	Log "* Error turning off amplifier"
 trap Exittrap QUIT EXIT
 
@@ -371,11 +366,11 @@ done
 Log "> All input files are valid"
 
 [[ $gpio ]] ||
-	Log "* Essential package 'wiringpi' (application 'gpio') not installed"
+	Log "* Essential package 'raspi-gpio' not installed"
 
 # Starting the button interface
 [[ -f $state ]] || echo -n "0">"$state"
-DISPLAY=$display $buttons &>/tmp/buttons.log &
+DISPLAY=$display $buttons >"$touchlog" &
 buttonspid=$!
 sleep 1
 ! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
