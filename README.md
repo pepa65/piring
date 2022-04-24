@@ -1,6 +1,6 @@
 # piring v3
 **Control a school sound system from a Raspberry Pi with touchscreen**
-* OS: RaspberryOS (based on Debian 11 Bullseye and beyond)
+* OS: RaspiOS (based on Debian 11 Bullseye and beyond)
 
 ## Usage
 `ring`

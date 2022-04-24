@@ -1,21 +1,26 @@
 ## Installing piring
 # Hardware: Raspberry Pi with 3.5" touchscreen (ADS7846) and relay board.
 
-# Put RaspberryOS on an SD card: https://www.raspberrypi.com/software/operating-systems/
+# Put RaspiOS "with desktop" on an SD card: https://www.raspberrypi.com/software/operating-systems/
 
-# Boot up, choose username pi and initialize:
+# Boot up with screen attached, choose username pi and initialize
 sudo -i
-raspi-config
+systemctl enable ssh
+systemctl start ssh
+# If desired, run: raspi-config
 # Set the desired screensaver timeout, and no lock!
-# Make sure ssh access is workable in case the screen drivers have problems!
 
 # Refresh the repo info, upgrade and install prerequisite packages and git
 apt update
 apt install sox python3-pygame tmux git
 apt full-upgrade
 
-# Allow user to run raspi-gpio binary:
+# Allow user to run raspi-gpio binary
 chmod u+s /usr/bin/raspi-gpio
+
+# Tweak firmware (before the screen driver install reboots)
+echo ads7846 >>/etc/modules
+echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
 
 # Install screen driver
 git clone https://github.com/goodtft/LCD-show.git
@@ -23,26 +28,13 @@ chmod -R 755 LCD-show
 cd LCD-show
 ./LCD35-show  # Leads to reboot
 
-# Tweak firmware:
-echo ads7846 >>/etc/modules
-echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
-
-# Allow autostart desktop through Lightdm:
-echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" >\
-		/etc/lightdm/lightdm.conf
-gpasswd -a pi nopasswdlogin
-
-# Allow audio use
-gpasswd -a pi audio
-
-# Clone this repo as user pi:
-sudo -u pi bash
+# Clone this repo as user pi
+#sudo -u pi bash
 cd
 mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
-cd piring
 
-# Set autostart with crontab @reboot
-echo "@reboot  $HOME/git/piring/atreboot"
-
+# Set autostart with cron
+crontab -e
+# Make sure this line is there:  @reboot /home/pi/git/piring/atreboot
