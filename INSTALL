@@ -1,40 +1,28 @@
 ## Installing piring
 # Hardware: Raspberry Pi with 3.5" touchscreen (ADS7846) and relay board.
 
-# Put RaspiOS "with desktop" on an SD card: https://www.raspberrypi.com/software/operating-systems/
+# Put the LCDwiki latest Raspbian image on an SD card: http://www.lcdwiki.com/3.5inch_RPi_Display
 
-# Boot up with screen attached, choose username pi and initialize
+# Boot up with the 3.5" screen attached, setup the wireless so ssh works
+
+# Login through ssh (user: pi, password: raspberrypi)
 sudo -i
-systemctl enable ssh
-systemctl start ssh
-# If desired, run: raspi-config
+# Change the password for sure, if desired, run: raspi-config
 # Set the desired screensaver timeout, and no lock!
 
 # Refresh the repo info, upgrade and install prerequisite packages and git
-apt update
-apt install sox python3-pygame tmux git
-apt full-upgrade
+apt update && apt full-upgrade
+apt install sox python3-pygame tmux
 
-# Allow user to run raspi-gpio binary
-chmod u+s /usr/bin/raspi-gpio
+# Quit root and change to the default user
+exit
 
-# Tweak firmware (before the screen driver install reboots)
-echo ads7846 >>/etc/modules
-echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
-
-# Install screen driver
-git clone https://github.com/goodtft/LCD-show.git
-chmod -R 755 LCD-show
-cd LCD-show
-./LCD35-show  # Leads to reboot
-
-# Clone this repo as user pi
-#sudo -u pi bash
-cd
+# Login on ssh and clone this repo as the main user
 mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
 
 # Set autostart with cron
 crontab -e
-# Make sure this line is there:  @reboot /home/pi/git/piring/atreboot
+# Make sure this line is there:  @reboot /home/USERNAME/git/piring/atreboot
+#  with USERNAME replaced by the actual user name

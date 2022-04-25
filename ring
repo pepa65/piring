@@ -54,7 +54,7 @@ set +xv
 #   (even if that date is also a No-Bells date!).
 #   All characters after position 12 resp. 23 are ignored as a comment.
 #
-# Required: raspi-gpio coreutils(sleep fold readlink) sox(play) date
+# Required: coreutils(sleep fold readlink) sox(play) date
 #  [$buttons: python3-pygame] [installation: tmux(optional)]
 #
 # License: GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
@@ -62,7 +62,7 @@ set +xv
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0
+relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 relay=/sys/class/gpio/gpio$relaypin
 
 # Directory names, scripts and input filenames
 ringtimes=ringtimes ringdates=ringdates
@@ -83,7 +83,7 @@ Error(){ # IO:error  I:i,line  $1:message
 	Log "* $l $1"
 }
 
-Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
+Ring(){ # IO:$relayon  I:now,relaypin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	local sched ringcode snd
 	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
@@ -91,7 +91,7 @@ Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
 	[[ $ringcode ]] || ringcode=0
 	snd=$soundfiles/$ringcode.ring
 	# Turn relay on
-	raspi-gpio set $relaypin $on && relayon=1 ||
+	echo $on >$relay/value && relayon=1 ||
 		Log "* Error turning on amplifier" time
 	sleep $ampdelay
 	# Ring bell
@@ -100,11 +100,11 @@ Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
 		Log "* Error playing $snd at $now"
 	sleep $shutoffdelay
 	# Turn relay off
-	raspi-gpio set $relaypin $off && relayon=0 ||
+	echo $off >$relay/value && relayon=0 ||
 		Log "* Error turning off amplifier" time
 }
 
-Button(){ # IO:relayon,playing  I:relaypin,state
+Button(){ # IO:relayon,playing  I:relaypin,relay,state
 	local button=$(<"$state") snd
 	# States: relay on/off and playing yes/no; transitions: button 0..4
 	# 0: if relayon: relayoff and kill player if playing
@@ -124,7 +124,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 			Log "* Interrupted sound from process $playing" time
 		fi
 		sleep $shutoffdelay
-		raspi-gpio set $relaypin $off && relayon=0 &&
+		echo $off >$relay/value && relayon=0 &&
 			Log "- Amplifier off" time ||
 			Log "* Error turning off amplifier" time
 		playing=0
@@ -138,7 +138,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 	snd=$(readlink -e "$soundfiles/$button.alarm")
 	if ((button==1)) || [[ $snd ]]
 	then
-		raspi-gpio set $relaypin $on && relayon=1 &&
+		echo $on >$relay/value && relayon=1 &&
 			Log "- Amplifier on" time && sleep $ampdelay ||
 			Log "* Error turning on amplifier" time
 	else
@@ -214,8 +214,10 @@ Bellcheck(){ # IO:nowold,daylogged
 		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
-Exittrap(){ # I:relaypin,playing
-	raspi-gpio set $relaypin $off
+Exittrap(){ # I:relaypin,relay,playing
+	echo $off >$relay/value
+	sleep 1
+	echo $relaypin >/sys/class/gpio/unexport
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
@@ -232,14 +234,12 @@ cd "${ring%/*}"
 Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
-# For testing without gpio installed
-gpio=$(type -p raspi-gpio) || raspi-gpio(){ :;}
-
 # Setting up pins
-! raspi-gpio set $relaypin $output &&
+! echo $relaypin >/sys/class/gpio/export raspi-gpio && sleep 1 &&
+	echo out >$relay/direction && sleep 1 &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
-raspi-gpio set $relaypin $off && relayon=0 ||
+echo "1" >/sys/class/gpio/gpio26/value && relayon=0 ||
 	Log "* Error turning off amplifier"
 trap Exittrap QUIT EXIT
 
@@ -364,9 +364,6 @@ done
 ((errors)) &&
 	Log "* Total of $errors error$s, not starting Ring program" && exit 2
 Log "> All input files are valid"
-
-[[ $gpio ]] ||
-	Log "* Essential package 'raspi-gpio' not installed"
 
 # Starting the button interface
 [[ -f $state ]] || echo -n "0">"$state"

@@ -15,10 +15,10 @@ winx,winy = 480,320
 debug = True
 
 # Initialize display
-touchscreen,scrdriver,viddriver = '/dev/input/by-path/platform-3f204000.spi-event','ads7846','x11'
-os.environ['SDL_MOUSEDRV'] = scrdriver
-os.environ['SDL_MOUSEDEV'] = touchscreen
-os.environ['SDL_VIDEODRVER'] = viddriver
+touchdev,touchdrv,videodrv = '/dev/input/event0','ads7846','x11'
+os.environ['SDL_MOUSEDEV'] = touchdev
+os.environ['SDL_MOUSEDRV'] = touchdrv
+os.environ['SDL_VIDEODRVER'] = videodrv
 os.environ['SDL_HINT_VIDEO_ALLOW_SCREENSAVER'] = '1'
 pg.display.init()
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
