@@ -246,13 +246,15 @@ then
 		Log "* Exporting relay pin $relaypin failed" && exit 1
 	Log "> Relay pin $relaypin exported"
 	sleep 1
+	[[ ! -f $relay ]] &&
+		Log "* Setting up relay with pin $relaypin failed" && exit 1
 else
 	Log "> Relay pin $relaypin already exported"
 fi
 ! echo out >$relay/direction &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1
 Log "> Relay pin $relaypin used for output"
-sleep 2
+sleep 3
 ! echo $off >$relay/value &&
 	Log "* Error turning off amplifier" && exit 1
 relayon=0
