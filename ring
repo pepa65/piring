@@ -62,7 +62,7 @@ set +xv
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 relay=/sys/class/gpio/gpio$relaypin
+pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 relay=/sys/class/gpio/gpio$pin
 
 # Directory names, scripts and input filenames
 ringtimes=ringtimes ringdates=ringdates
@@ -83,7 +83,7 @@ Error(){ # IO:error  I:i,line  $1:message
 	Log "* $l $1"
 }
 
-Ring(){ # IO:$relayon  I:now,relaypin,relay,ampdelay,time,shutoffdelay  $1:schedule
+Ring(){ # IO:$relayon  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	local sched ringcode snd
 	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
@@ -106,7 +106,7 @@ Ring(){ # IO:$relayon  I:now,relaypin,relay,ampdelay,time,shutoffdelay  $1:sched
 	relayon=0
 }
 
-Button(){ # IO:relayon,playing  I:relaypin,relay,state
+Button(){ # IO:relayon,playing  I:pin,relay,state
 	local button=$(<"$state") snd
 	# States: relay on/off and playing yes/no; transitions: button 0..4
 	# 0: if relayon: relayoff and kill player if playing
@@ -218,10 +218,10 @@ Bellcheck(){ # IO:nowold,daylogged
 		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
-Exittrap(){ # I:relaypin,relay,playing
+Exittrap(){ # I:pin,relay,playing
 	echo $off >$relay/value
 	sleep 1
-	echo $relaypin >/sys/class/gpio/unexport
+	echo $pin >/sys/class/gpio/unexport
 	sleep 1
 	kill "$playing"
 	kill -9 "$buttonspid"
@@ -231,7 +231,7 @@ Exittrap(){ # I:relaypin,relay,playing
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
 kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=dh off=dl output=op buttonspid=
+on=1 off=0 output=op buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -242,18 +242,18 @@ Log "> Amplifier switch-on delay ${ampdelay}s"
 # Setting up pins
 if [[ ! -a $relay ]]
 then
-	! echo $relaypin >/sys/class/gpio/export &&
-		Log "* Exporting relay pin $relaypin failed" && exit 1
-	Log "> Relay pin $relaypin exported"
+	! echo $pin >/sys/class/gpio/export &&
+		Log "* Exporting relay pin $pin failed" && exit 1
+	Log "> Relay pin $pin exported"
 	sleep 1
 	[[ ! -a $relay ]] &&
-		Log "* Setting up relay with pin $relaypin failed" && exit 1
+		Log "* Setting up relay with pin $pin failed" && exit 1
 else
-	Log "> Relay pin $relaypin already exported"
+	Log "> Relay pin $pin already exported"
 fi
 ! echo out >$relay/direction &&
-	Log "* Setting up relay pin $relaypin for output failed" && exit 1
-Log "> Relay pin $relaypin used for output"
+	Log "* Setting up relay pin $pin for output failed" && exit 1
+Log "> Relay pin $pin used for output"
 sleep 3
 ! echo $off >$relay/value &&
 	Log "* Error turning off amplifier" && exit 1
