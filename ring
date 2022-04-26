@@ -62,13 +62,11 @@ set +xv
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 relay=/sys/class/gpio/gpio$pin
+pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1 relay=/sys/class/gpio/gpio$pin
 
 # Directory names, scripts and input filenames
-ringtimes=ringtimes ringdates=ringdates
-touchscreen=touchscreen soundfiles=soundfiles
-ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state
-touchlog=$touchscreen/touch.log
+ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
+ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state touchlog=$touchscreen/touch.log
 
 Log(){ # $1:message $2(optional):timeflag
 	local datetime
@@ -220,9 +218,9 @@ Bellcheck(){ # IO:nowold,daylogged
 
 Exittrap(){ # I:pin,relay,playing
 	echo $off >$relay/value
-	sleep 1
+	sleep $gpiodelay
 	echo $pin >/sys/class/gpio/unexport
-	sleep 1
+	sleep $gpiodelay
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
@@ -245,7 +243,7 @@ then
 	! echo $pin >/sys/class/gpio/export &&
 		Log "* Exporting relay pin $pin failed" && exit 1
 	Log "> Relay pin $pin exported"
-	sleep 1
+	sleep $gpiodelay
 	[[ ! -a $relay ]] &&
 		Log "* Setting up relay with pin $pin failed" && exit 1
 else
@@ -254,7 +252,7 @@ fi
 ! echo out >$relay/direction &&
 	Log "* Setting up relay pin $pin for output failed" && exit 1
 Log "> Relay pin $pin used for output"
-sleep 3
+sleep $gpiodelay
 ! echo $off >$relay/value &&
 	Log "* Error turning off amplifier" && exit 1
 relayon=0
@@ -386,7 +384,7 @@ Log "> All input files are valid"
 [[ -f $state ]] || echo -n "0">"$state"
 DISPLAY=$display $buttons >"$touchlog" &
 buttonspid=$!
-sleep 1
+sleep $startdelay
 ! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
 Log "> Touchscreen ready, pid: $buttonspid"
 
