@@ -239,7 +239,7 @@ Log "> Amplifier switch-on delay ${ampdelay}s"
 	echo out >$relay/direction && sleep 1 &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
-echo "1" >/sys/class/gpio/gpio26/value && relayon=0 ||
+echo $off >$relay/value && relayon=0 ||
 	Log "* Error turning off amplifier"
 trap Exittrap QUIT EXIT
 
