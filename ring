@@ -240,13 +240,13 @@ Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # Setting up pins
-if [[ ! -f $relay ]]
+if [[ ! -a $relay ]]
 then
 	! echo $relaypin >/sys/class/gpio/export &&
 		Log "* Exporting relay pin $relaypin failed" && exit 1
 	Log "> Relay pin $relaypin exported"
 	sleep 1
-	[[ ! -f $relay ]] &&
+	[[ ! -a $relay ]] &&
 		Log "* Setting up relay with pin $relaypin failed" && exit 1
 else
 	Log "> Relay pin $relaypin already exported"
