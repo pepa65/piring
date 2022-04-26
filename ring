@@ -235,10 +235,13 @@ Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # Setting up pins
-! echo $relaypin >/sys/class/gpio/export && sleep 1 &&
-	echo out >$relay/direction && sleep 1 &&
-	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
-	Log "> Relay pin $relaypin used for output"
+! echo $relaypin >/sys/class/gpio/export &&
+	Log "* Exporting relay pin $relaypin failed" && exit 1
+Log "> Relay pin $relaypin exported"
+sleep 1
+! echo out >$relay/direction &&
+	Log "* Setting up relay pin $relaypin for output failed" && exit 1
+Log "> Relay pin $relaypin used for output"
 echo $off >$relay/value && relayon=0 ||
 	Log "* Error turning off amplifier"
 trap Exittrap QUIT EXIT
