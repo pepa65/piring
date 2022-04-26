@@ -143,7 +143,8 @@ Button(){ # IO:relayon,playing  I:relaypin,relay,state
 		! echo $on >$relay/value &&
 			Log "* Error turning on amplifier" time && exit 1
 		relayon=1
-		Log "- Amplifier on" time && sleep $ampdelay ||
+		Log "- Amplifier on" time
+		sleep $ampdelay
 	else
 		Log "* Missing sound file $soundfiles/$button.alarm"
 	fi
