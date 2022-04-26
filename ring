@@ -235,7 +235,7 @@ Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # Setting up pins
-! echo $relaypin >/sys/class/gpio/export raspi-gpio && sleep 1 &&
+! echo $relaypin >/sys/class/gpio/export && sleep 1 &&
 	echo out >$relay/direction && sleep 1 &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
 	Log "> Relay pin $relaypin used for output"
