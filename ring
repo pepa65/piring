@@ -91,8 +91,9 @@ Ring(){ # IO:$relayon  I:now,relaypin,relay,ampdelay,time,shutoffdelay  $1:sched
 	[[ $ringcode ]] || ringcode=0
 	snd=$soundfiles/$ringcode.ring
 	# Turn relay on
-	echo $on >$relay/value && relayon=1 ||
-		Log "* Error turning on amplifier" time
+	! echo $on >$relay/value &&
+		Log "* Error turning on amplifier" time && exit 1
+	relayon=1
 	sleep $ampdelay
 	# Ring bell
 	Log "- Ring Ringtone $ringcode on $sched at $now"
@@ -100,8 +101,9 @@ Ring(){ # IO:$relayon  I:now,relaypin,relay,ampdelay,time,shutoffdelay  $1:sched
 		Log "* Error playing $snd at $now"
 	sleep $shutoffdelay
 	# Turn relay off
-	echo $off >$relay/value && relayon=0 ||
-		Log "* Error turning off amplifier" time
+	! echo $off >$relay/value &&
+		Log "* Error turning off amplifier" time && exit 1
+	relayon=0
 }
 
 Button(){ # IO:relayon,playing  I:relaypin,relay,state
@@ -124,10 +126,10 @@ Button(){ # IO:relayon,playing  I:relaypin,relay,state
 			Log "* Interrupted sound from process $playing" time
 		fi
 		sleep $shutoffdelay
-		echo $off >$relay/value && relayon=0 &&
-			Log "- Amplifier off" time ||
-			Log "* Error turning off amplifier" time
-		playing=0
+		! echo $off >$relay/value &&
+			Log "* Error turning off amplifier" time && exit 1
+		relayon=0 playing=0
+		Log "- Amplifier off" time ||
 		return
 	fi
 
@@ -138,9 +140,10 @@ Button(){ # IO:relayon,playing  I:relaypin,relay,state
 	snd=$(readlink -e "$soundfiles/$button.alarm")
 	if ((button==1)) || [[ $snd ]]
 	then
-		echo $on >$relay/value && relayon=1 &&
-			Log "- Amplifier on" time && sleep $ampdelay ||
-			Log "* Error turning on amplifier" time
+		! echo $on >$relay/value &&
+			Log "* Error turning on amplifier" time && exit 1
+		relayon=1
+		Log "- Amplifier on" time && sleep $ampdelay ||
 	else
 		Log "* Missing sound file $soundfiles/$button.alarm"
 	fi
@@ -218,6 +221,7 @@ Exittrap(){ # I:relaypin,relay,playing
 	echo $off >$relay/value
 	sleep 1
 	echo $relaypin >/sys/class/gpio/unexport
+	sleep 1
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
@@ -242,8 +246,10 @@ sleep 1
 ! echo out >$relay/direction &&
 	Log "* Setting up relay pin $relaypin for output failed" && exit 1
 Log "> Relay pin $relaypin used for output"
-echo $off >$relay/value && relayon=0 ||
-	Log "* Error turning off amplifier"
+sleep 1
+! echo $off >$relay/value &&
+	Log "* Error turning off amplifier" && exit 1
+relayon=0
 trap Exittrap QUIT EXIT
 
 Log "- Validating Date information in '$(readlink -f $ringdates)'"
