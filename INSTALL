@@ -12,7 +12,7 @@ sudo -i
 
 # Refresh the repo info, upgrade and install prerequisite packages and git
 apt update && apt full-upgrade
-apt install sox python3-pygame tmux
+apt install sox tmux  # python3-pygame and git are already installed!
 
 # Quit root and change to the default user
 exit
