@@ -1,7 +1,7 @@
 #!/bin/bash
 set +xv
 # piring - Control a school sound system from a Raspberry Pi with touchscreen
-# Usage: ring
+# Usage: ring [-s|--simulate]
 #
 # Hardware:
 #  Pi with 3.5" 480x320 touchscreen and a relay that controls the
@@ -63,6 +63,7 @@ set +xv
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
 pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1 relay=/sys/class/gpio/gpio$pin
+[[ $1 = -s || $1 = --simulate ]] && sim=1 || sim=0
 
 # Directory names, scripts and input filenames
 ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
@@ -81,30 +82,22 @@ Error(){ # IO:error  I:i,line  $1:message
 	Log "* $l $1"
 }
 
-Ring(){ # IO:$relayon  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
+Ring(){ # IO:playing  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	local sched ringcode snd
 	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
 	snd=$soundfiles/$ringcode.ring
-	# Turn relay on
-	! echo $on >$relay/value &&
-		Log "* Error turning on amplifier" time && exit 1
-	relayon=1
-	sleep $ampdelay
+	Gpio on
 	# Ring bell
 	Log "- Ring Ringtone $ringcode on $sched at $now"
 	play -V0 -q "$snd" 2>/dev/null ||
 		Log "* Error playing $snd at $now"
-	sleep $shutoffdelay
-	# Turn relay off
-	! echo $off >$relay/value &&
-		Log "* Error turning off amplifier" time && exit 1
-	relayon=0
+	Gpio off
 }
 
-Button(){ # IO:relayon,playing  I:pin,relay,state
+Button(){ # IO:playing  I:state,button,relayon,soundfiles
 	local button=$(<"$state") snd
 	# States: relay on/off and playing yes/no; transitions: button 0..4
 	# 0: if relayon: relayoff and kill player if playing
@@ -123,11 +116,7 @@ Button(){ # IO:relayon,playing  I:pin,relay,state
 			wait $playing 2>/dev/null
 			Log "* Interrupted sound from process $playing" time
 		fi
-		sleep $shutoffdelay
-		! echo $off >$relay/value &&
-			Log "* Error turning off amplifier" time && exit 1
-		relayon=0 playing=0
-		Log "- Amplifier off" time
+		Gpio off
 		return
 	fi
 
@@ -137,14 +126,8 @@ Button(){ # IO:relayon,playing  I:pin,relay,state
 	# Turn on if announcing or sound file present
 	snd=$(readlink -e "$soundfiles/$button.alarm")
 	if ((button==1)) || [[ $snd ]]
-	then
-		! echo $on >$relay/value &&
-			Log "* Error turning on amplifier" time && exit 1
-		relayon=1
-		Log "- Amplifier on" time
-		sleep $ampdelay
-	else
-		Log "* Missing sound file $soundfiles/$button.alarm"
+	then Gpio on
+	else Log "* Missing sound file $soundfiles/$button.alarm"
 	fi
 
 	# Play sound file if present
@@ -159,7 +142,7 @@ Button(){ # IO:relayon,playing  I:pin,relay,state
 }
 
 Bellcheck(){ # IO:nowold,daylogged
-		# I:nobellsdates specialdates schedules additionals ringcodes muteds
+		# I:nobellsdates,specialdates,schedules,additionals,ringcodes,muteds
 	# Once daily log and ring if required
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d')
 	local additoday=0 spectoday=0 rung=0 speclogged=0
@@ -216,19 +199,51 @@ Bellcheck(){ # IO:nowold,daylogged
 		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
-Exittrap(){ # I:pin,relay,playing
-	echo $off >$relay/value
-	sleep $gpiodelay
-	echo $pin >/sys/class/gpio/unexport
-	sleep $gpiodelay
+Exittrap(){ # I:playing,buttonspid
+	((relayon)) && Gpio off
+	Gpio down
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
 }
 
+Gpio(){ # 1:up|down|out|on|off  I:sim,pin,gpiodelay,relay,off,on  IO:relayon
+	case $1 in
+	up) # Export relay pin
+		((!sim)) && ! echo $pin >/sys/class/gpio/export &&
+			Log "* Exporting relay pin $pin failed" && exit 1
+		Log "> Relay pin $pin exported"
+		sleep $gpiodelay
+		((!sim)) && [[ ! -a $relay ]] &&
+			Log "* Setting up relay with pin $pin failed" && exit 1 ;;
+	down) # Unexport relay pin
+		sleep $gpiodelay
+		((!sim)) && echo $pin >/sys/class/gpio/unexport
+		sleep $gpiodelay ;;
+	out) # Set relay pin to output
+		((!sim)) && ! echo out >$relay/direction &&
+			Log "* Setting up relay pin $pin for output failed" && exit 1
+		Log "> Relay pin $pin used for output"
+		sleep $gpiodelay
+		Gpio off ;;
+	off) # Turn relay off
+		sleep $shutoffdelay
+		((!sim)) && ! echo $off >$relay/value &&
+			Log "* Error turning off amplifier" && exit 1
+		Log "- Amplifier off" time
+		relayon=0 playing=0 ;;
+	on) # Turn relay on
+		((!sim)) && ! echo $on >$relay/value &&
+			Log "* Error turning on amplifier" time && exit 1
+		Log "- Amplifier on" time
+		sleep $ampdelay
+		relayon=1 ;;
+	esac
+}
+
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
-kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
+kbd= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
 on=1 off=0 output=op buttonspid=
 
 # Read files from the same directory as this script
@@ -238,24 +253,12 @@ Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
 # Setting up pins
+((sim)) && Log "> Simulate, not writing to gpio device"
 if [[ ! -a $relay ]]
-then
-	! echo $pin >/sys/class/gpio/export &&
-		Log "* Exporting relay pin $pin failed" && exit 1
-	Log "> Relay pin $pin exported"
-	sleep $gpiodelay
-	[[ ! -a $relay ]] &&
-		Log "* Setting up relay with pin $pin failed" && exit 1
-else
-	Log "> Relay pin $pin already exported"
+then Gpio up
+else Log "> Relay pin $pin already exported"
 fi
-! echo out >$relay/direction &&
-	Log "* Setting up relay pin $pin for output failed" && exit 1
-Log "> Relay pin $pin used for output"
-sleep $gpiodelay
-! echo $off >$relay/value &&
-	Log "* Error turning off amplifier" && exit 1
-relayon=0
+Gpio out
 trap Exittrap QUIT EXIT
 
 Log "- Validating Date information in '$(readlink -f $ringdates)'"
