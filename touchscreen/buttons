@@ -32,8 +32,8 @@ win = pg.display.set_mode((winx,winy),pg.NOFRAME)
 bg,leftclick,middleclick = (0,0,0),1,2
 ww,wh = pg.display.Info().current_w,pg.display.Info().current_h
 fw,fh = ww/float(disx),wh/float(disy)
-print(str(fw)+','+str(fh))
-if debug: print(str(ww)+'x'+str(wh))
+print(f'{fw},{fh}')
+if debug: print(f'{ww}x{wh}')
 z,bw,bh,cx,cy = 0,ww>>1,wh>>1,ww>>2,wh>>2
 btn,x,y,face,facebig,image,bigimg = 0,1,2,3,4,5,6
 buttons = (['1',z,z,'1.png','1f.png',None,None],['3',bw,z,'3.png','3f.png',None,None],
@@ -108,7 +108,7 @@ while True: # Never stop
 						# Examine selection
 						mx,my = event.pos
 						if debug:
-							print(str(mx)+','+str(my))
+							print(f'{mx},{my}')
 						# Check every button
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
@@ -144,7 +144,7 @@ while True: # Never stop
 					confirmed = True
 					mx,my = event.pos
 					if debug:
-						print(str(mx)+','+str(my))
+						print(f'{mx},{my}')
 					if my>bh: # Lower half of the screen
 						selected = True
 					break # for event loop + while not confirmed loop
