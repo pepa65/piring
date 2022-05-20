@@ -2,7 +2,7 @@
 ## s: space|empty (= Normal schedule) | alphabetical (= Special schedule code)
 ## R: numerical (= Ringtone code) | space|empty (= Ringtone code 0) | - (= mute)
 
-# Normal schedule 2020/2021
+# Normal schedule 2020/2021/2022
 07:55
 08:00   1st period
 08:50
@@ -26,7 +26,9 @@
 15:00   8th (shorter) period
 15:40   School end
 
-# L: Late schedule 2020/2021
+# X: No regular classes (but screens on)
+
+# L: Late schedule 2020/2021/2022
 #07:45L  Teacher training
 #08:45L
 08:55L 
@@ -49,8 +51,6 @@
 14:55L
 15:00L  8th period
 15:40L  School end
-
-# X: No regular classes (but screens on)
 
 # M: Afternoon off
 12:25M- 5th period
