@@ -52,18 +52,35 @@
 15:00L  8th period
 15:40L  School end
 
-# M: Afternoon off
-12:25M- 5th period
-13:15M-
-13:20M- 6th period
+# P+: Normal schedule, but no classes after lunch
+#12:20P- Lunch break end
+12:25P- 5th period
+13:15P-
+13:20P- 6th period
 #14:00M- (Elementary break: no bell)
-14:10M- (Elementary break end)
-14:15M- 7th (shorter) period
-14:55M-
-15:00M- 8th (shorter) period
-15:40M- School end
+14:10P- (Elementary break end)
+14:15P- 7th (shorter) period
+14:55P-
+15:00P- 8th (shorter) period
+15:40P- School end
 
-# G: Game afternoon
+# p+: Late schedule, but no classes after lunch
+#12:40p- Lunch break end
+12:45p- 5th period
+13:25p-
+13:30p- 6th period
+#14:00M- (Elementary break: no bell)
+14:10p- (Elementary break end)
+14:15p- 7th (shorter) period
+14:55p-
+15:00p- 8th (shorter) period
+15:40p- School end
+
+# B+: Buddy classes before Late start
+07:55B
+08:00B
+
+# G+: Game afternoon
 13:20G- 6th period
 #14:00G- (Elementary break: no bell)
 14:10G- (Elementary break end)
@@ -75,10 +92,6 @@
 # r+: Pep rally on 2021-04-21
 11:25r  Start rally
 
-# B+: Buddy classes before Late start
-07:55B
-08:00B
-
 # I+: International day
 08:50I-
 08:55I-
@@ -87,27 +100,15 @@
 09:55I-
 10:00I-
 
-# P+: Normal schedule, but no classes after lunch
-#12:20P-
-12:25P-
-13:15P-
-13:20P-
-14:10P-
-14:15P-
-14:55P-
-15:00P-
-15:40P-
-
-# p+: Late schedule, but no classes after lunch
-12:40p-
-12:45p-
-13:25p-
-13:30p-
-14:10p-
-14:15p-
-14:55p-
-15:00p-
-15:40p-
+12:25M- 5th period
+13:15M-
+13:20M- 6th period
+#14:00M- (Elementary break: no bell)
+14:10M- (Elementary break end)
+14:15M- 7th (shorter) period
+14:55M-
+15:00M- 8th (shorter) period
+15:40M- School end
 
 # T+: Normal schedule until lunch, end of Q2 afternoon
 #13:15  Call to auditorium
