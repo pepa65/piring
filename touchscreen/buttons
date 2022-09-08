@@ -1,36 +1,66 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env -S python3 -u
 #coding: utf-8
-# Required: python2.7 pygame
+# Required: python3-pygame
 
-import pygame as pg
 import os
 import time
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = '1'
+import pygame as pg
 
 timeout = 30 # Seconds
 polldelay = .2 # Seconds
-touchscreen,driver = '/dev/input/by-path/platform-3f204000.spi-event','ads7846'
-os.environ['SDL_MOUSEDRV'] = driver
-os.environ['SDL_MOUSEDEV'] = touchscreen
-ww,wh,bg,leftclick,middleclick = 480,320,(0,0,0),1,2
-z,bw,bh,cx,cy = 0,ww/2,wh/2,ww/4,wh/4
-btn,x,y,face,facebig = 0,1,2,3,4
-buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
-	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
-logo = 'logo.png'
-dir = os.path.dirname(os.path.abspath(__file__))+'/'
-close,cancel,confirm = dir+'x.png',dir+'cancel.png',dir+'confirm.png'
-state,icon = dir+'state',dir+'icon.png'
-# If debug is False, no writing to stderr
+disx,disy = 480,320
+winx,winy = 480,320
+# If debug is False, no output
 debug = True
 
 # Initialize display
+touchdev,touchdrv,videodrv = '/dev/input/event0','ads7846','x11'
+os.environ['SDL_MOUSEDEV'] = touchdev
+os.environ['SDL_MOUSEDRV'] = touchdrv
+os.environ['SDL_VIDEODRVER'] = videodrv
+os.environ['SDL_HINT_VIDEO_ALLOW_SCREENSAVER'] = '1'
 pg.display.init()
-icn = pg.image.load(icon)
-pg.display.set_icon(icn)
+dir = os.path.dirname(os.path.abspath(__file__))+'/'
+iconimg = pg.image.load(dir+'icon.png')
+pg.display.set_icon(iconimg)
 pg.display.set_caption('piring')
 pg.mouse.set_visible(False)
-# Never use FULLSCREEN as it messes up the touch readings
-win = pg.display.set_mode((ww,wh),pg.NOFRAME)
+# Never use pg.FULLSCREEN as it messes up the touch readings
+#win = pg.display.set_mode((0,0),pg.NOFRAME)
+win = pg.display.set_mode((winx,winy),pg.NOFRAME)
+bg,leftclick,middleclick = (0,0,0),1,2
+ww,wh = pg.display.Info().current_w,pg.display.Info().current_h
+fw,fh = ww/float(disx),wh/float(disy)
+print(f'{fw},{fh}')
+if debug: print(f'{ww}x{wh}')
+z,bw,bh,cx,cy = 0,ww>>1,wh>>1,ww>>2,wh>>2
+btn,x,y,face,facebig,image,bigimg = 0,1,2,3,4,5,6
+buttons = (['1',z,z,'1.png','1f.png',None,None],['3',bw,z,'3.png','3f.png',None,None],
+	['2',z,bh,'2.png','2f.png',None,None],['4',bw,bh,'4.png','4f.png',None,None])
+for b in buttons:
+	img = pg.image.load(dir+b[face])
+	b[image] = pg.transform.scale(img,(bw,bh))
+	img = pg.image.load(dir+b[facebig])
+	b[bigimg] = pg.transform.scale(img,(ww,wh))
+
+logoimg = pg.image.load(dir+'logo.png')
+logow,logoh = int(logoimg.get_width()*fw),int(logoimg.get_height()*fh)
+logoimg = pg.transform.scale(logoimg,(logow,logoh))
+logoleft,logoup = logow>>1,(logoh>>1)-int(logoh/9*fh)
+
+cancelimg = pg.image.load(dir+'cancel.png')
+confirmimg = pg.image.load(dir+'confirm.png')
+# canceling and confirmimg are assumed to have the same dimensions
+selectm,selectw,selecth = 10,int(confirmimg.get_width()*fw),int(confirmimg.get_height()*fh)
+cancelimg = pg.transform.scale(cancelimg,(selectw,selecth))
+confirmimg = pg.transform.scale(confirmimg,(selectw,selecth))
+
+closeimg = pg.image.load(dir+'x.png')
+closem,closew = 5,int(closeimg.get_width()*fw)
+closeimg = pg.transform.scale(closeimg,(closew,closew))
+state = dir+'state'
+
 blank = False
 touchtime = time.time()
 
@@ -43,10 +73,10 @@ while True: # Never stop
 		confirmed = False # No button confirmed
 		# Display buttons
 		blank = False
+		win.fill(bg)
 		for b in buttons:
-			img = pg.image.load(dir+b[face])
-			win.blit(img,(b[x],b[y]))
-		win.blit(pg.image.load(dir+logo),(bw-28,bh-30))
+			win.blit(b[image],(b[x],b[y]))
+		win.blit(logoimg,(bw-logoleft,bh-logoup))
 		pg.display.flip()
 
 		# Wait for one of the 4 buttons to be pressed
@@ -62,7 +92,6 @@ while True: # Never stop
 				if event.type == pg.MOUSEBUTTONDOWN:
 					# Middleclick terminates the interface but not the bell system
 					if event.button == middleclick:
-						if debug: os.write(2,'aborted'+os.linesep)
 						pg.quit()
 						os._exit(1)
 					if event.button == leftclick:
@@ -71,15 +100,15 @@ while True: # Never stop
 						if blank:
 							blank = False
 							for b in buttons:
-								img = pg.image.load(dir+b[face])
-								win.blit(img,(b[x],b[y]))
-							win.blit(pg.image.load(dir+logo),(bw-28,bh-30))
+								win.blit(b[image],(b[x],b[y]))
+							win.blit(logoimg,(bw-logoleft,bh-logoup))
 							pg.display.flip()
 							continue # for event loop
 
 						# Examine selection
 						mx,my = event.pos
-						if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
+						if debug:
+							print(f'{mx},{my}')
 						# Check every button
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
@@ -92,12 +121,9 @@ while True: # Never stop
 									# Show the pressed button with OK/cancel options
 									blank = False
 									win.fill(bg)
-									img = pg.image.load(dir+b[face])
-									win.blit(img,(cx,cy))
-									img = pg.image.load(cancel)
-									win.blit(img,(10,10))
-									img = pg.image.load(confirm)
-									win.blit(img,(10,210))
+									win.blit(b[image],(cx,cy))
+									win.blit(cancelimg,(selectm,selectm))
+									win.blit(confirmimg,(selectm,wh-selecth-selectm))
 									pg.display.flip()
 								break # for b loop, (for event loop) + while not pressed loop
 
@@ -117,17 +143,17 @@ while True: # Never stop
 					# Either selected or cancelled
 					confirmed = True
 					mx,my = event.pos
-					if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
+					if debug:
+						print(f'{mx},{my}')
 					if my>bh: # Lower half of the screen
 						selected = True
 					break # for event loop + while not confirmed loop
 
 	# Selected: show selected button with close icon and pass it to ring-script
 	Blank = False
-	img = pg.image.load(dir+b[facebig])
-	win.blit(img,(0,0))
-	img = pg.image.load(close)
-	win.blit(img,(425,5))
+	win.fill(bg)
+	win.blit(b[bigimg],(0,0))
+	win.blit(closeimg,(ww-closew-closem,closem))
 	pg.display.flip()
 	f = open(state,'w')
 	f.write(b[btn])

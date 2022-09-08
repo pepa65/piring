@@ -1,7 +1,7 @@
 #!/bin/bash
 set +xv
 # piring - Control a school sound system from a Raspberry Pi with touchscreen
-# Usage: ring
+# Usage: ring [-s|--simulate]
 #
 # Hardware:
 #  Pi with 3.5" 480x320 touchscreen and a relay that controls the
@@ -54,25 +54,20 @@ set +xv
 #   (even if that date is also a No-Bells date!).
 #   All characters after position 12 resp. 23 are ignored as a comment.
 #
-# Required: wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
-#  [$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
+# Required: coreutils(sleep fold readlink) sox(play) date
+#  [$buttons: python3-pygame] [installation: tmux(optional)]
 #
-# Deployment:
-#  To autostart on reboot, source the script `rc.local`. In the included file
-#  are two deployment examples given.
-#
-# License:
-#  GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
+# License: GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
 
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-relaypin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0
+pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1 relay=/sys/class/gpio/gpio$pin
+[[ $1 = -s || $1 = --simulate ]] && sim=1 || sim=0
 
 # Directory names, scripts and input filenames
-ringtimes=ringtimes ringdates=ringdates
-touchscreen=touchscreen soundfiles=soundfiles
-ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state
+ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
+ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state touchlog=$touchscreen/touch.log
 
 Log(){ # $1:message $2(optional):timeflag
 	local datetime
@@ -87,38 +82,32 @@ Error(){ # IO:error  I:i,line  $1:message
 	Log "* $l $1"
 }
 
-Ring(){ # IO:$relayon  I:now,relaypin,ampdelay,time,shutoffdelay  $1:schedule
+Ring(){ # IO:playing  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	local sched ringcode snd
 	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
 	ringcode=${ringcodes[$now$1]}
 	# Empty ringcode is 0
 	[[ $ringcode ]] || ringcode=0
 	snd=$soundfiles/$ringcode.ring
-	# Turn relay on
-	gpio -g write $relaypin $on && relayon=1 ||
-		Log "* Error turning on amplifier" time
-	sleep $ampdelay
+	Gpio on
 	# Ring bell
 	Log "- Ring Ringtone $ringcode on $sched at $now"
 	play -V0 -q "$snd" 2>/dev/null ||
 		Log "* Error playing $snd at $now"
-	sleep $shutoffdelay
-	# Turn relay off
-	gpio -g write $relaypin $off && relayon=0 ||
-		Log "* Error turning off amplifier" time
+	Gpio off
 }
 
-Button(){ # IO:relayon,playing  I:relaypin,state
+Button(){ # IO:playing  I:state,button,relayon,soundfiles
 	local button=$(<"$state") snd
 	# States: relay on/off and playing yes/no; transitions: button 0..4
 	# 0: if relayon: relayoff and kill player if playing
-	# If !0 and relayoff: relayon; if file present: play file
+	# If not 0 and relayoff: relayon; if file present: play file
 
 	# Nothing on, nothing needed
-	((!button && !relayon)) && return
+	((! button && ! relayon)) && return
 
 	# No button and relayon: relay off and no playing
-	if ((!button && relayon))
+	if ((! button && relayon))
 	then
 		# If actually playing
 		if ((playing)) && ps $playing >/dev/null
@@ -127,11 +116,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 			wait $playing 2>/dev/null
 			Log "* Interrupted sound from process $playing" time
 		fi
-		sleep $shutoffdelay
-		gpio -g write $relaypin $off && relayon=0 &&
-			Log "- Amplifier off" time ||
-			Log "* Error turning off amplifier" time
-		playing=0
+		Gpio off
 		return
 	fi
 
@@ -141,12 +126,8 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 	# Turn on if announcing or sound file present
 	snd=$(readlink -e "$soundfiles/$button.alarm")
 	if ((button==1)) || [[ $snd ]]
-	then
-		gpio -g write $relaypin $on && relayon=1 &&
-			Log "- Amplifier on" time && sleep $ampdelay ||
-			Log "* Error turning on amplifier" time
-	else
-		Log "* Missing sound file $soundfiles/$button.alarm"
+	then Gpio on
+	else Log "* Missing sound file $soundfiles/$button.alarm"
 	fi
 
 	# Play sound file if present
@@ -161,7 +142,7 @@ Button(){ # IO:relayon,playing  I:relaypin,state
 }
 
 Bellcheck(){ # IO:nowold,daylogged
-		# I:nobellsdates specialdates schedules additionals ringcodes muteds
+		# I:nobellsdates,specialdates,schedules,additionals,ringcodes,muteds
 	# Once daily log and ring if required
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d')
 	local additoday=0 spectoday=0 rung=0 speclogged=0
@@ -184,20 +165,20 @@ Bellcheck(){ # IO:nowold,daylogged
 		then # Today has a Special schedule
 			spectoday=1
 			# Log all special schedules for today if not yet logged
-			((!daylogged && ++speclogged)) &&
+			((! daylogged && ++speclogged)) &&
 				Log "> $today '$s${additionals[$s]}' day:${schedules[$s]}"
 			# If any Special schedules is Additional today, mark it
 			[[ ${additionals[$s]} ]] && additoday=1
-			((!rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
+			((! rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
 		fi
 	done
-	((speclogged && !additoday)) && daylogged=1
+	((speclogged && ! additoday)) && daylogged=1
 
 	# No longer deal with Normal days if No-Bells day today
 	if [[ "$nobellsdates " = *" $today "* ]]
 	then
 		# Log No-Bells day if nothing logged yet today
-		((!daylogged)) && daylogged=1 && Log "> $today No-Bells day"
+		((! daylogged)) && daylogged=1 && Log "> $today No-Bells day"
 		return
 	fi
 
@@ -205,31 +186,65 @@ Bellcheck(){ # IO:nowold,daylogged
 	if (($(date +'%u')>5))
 	then
 		# Log Weekend day if nothing logged yet today
-		((!daylogged)) && daylogged=1 && Log "> $today $(date +'%A')"
+		((! daylogged)) && daylogged=1 && Log "> $today $(date +'%A')"
 		return
 	fi
 
 	# Log Normal day if nothing (or only special schedules) logged for today
-	((!daylogged)) && daylogged=1 &&
+	((! daylogged)) && daylogged=1 &&
 		Log "> $today Normal day:${schedules['_']}"
 
 	# If not rung yet and: additional schedule or no special schedules at all
-	((!rung && (additoday || !spectoday))) &&
+	((! rung && (additoday || ! spectoday))) &&
 		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
 }
 
-Exittrap(){ # I:relaypin,playing
-	gpio -g write $relaypin $off
-	gpio unexportall
+Exittrap(){ # I:playing,buttonspid
+	((relayon)) && Gpio off
+	Gpio down
 	kill "$playing"
 	kill -9 "$buttonspid"
 	Log $'\n'"# Quit" time
 }
 
+Gpio(){ # 1:up|down|out|on|off  I:sim,pin,gpiodelay,relay,off,on  IO:relayon
+	case $1 in
+	up) # Export relay pin
+		((!sim)) && ! echo $pin >/sys/class/gpio/export &&
+			Log "* Exporting relay pin $pin failed" && exit 1
+		Log "> Relay pin $pin exported"
+		sleep $gpiodelay
+		((!sim)) && [[ ! -a $relay ]] &&
+			Log "* Setting up relay with pin $pin failed" && exit 1 ;;
+	down) # Unexport relay pin
+		sleep $gpiodelay
+		((!sim)) && echo $pin >/sys/class/gpio/unexport
+		sleep $gpiodelay ;;
+	out) # Set relay pin to output
+		((!sim)) && ! echo out >$relay/direction &&
+			Log "* Setting up relay pin $pin for output failed" && exit 1
+		Log "> Relay pin $pin used for output"
+		sleep $gpiodelay
+		Gpio off ;;
+	off) # Turn relay off
+		sleep $shutoffdelay
+		((!sim)) && ! echo $off >$relay/value &&
+			Log "* Error turning off amplifier" && exit 1
+		Log "- Amplifier off" time
+		relayon=0 playing=0 ;;
+	on) # Turn relay on
+		((!sim)) && ! echo $on >$relay/value &&
+			Log "* Error turning on amplifier" time && exit 1
+		Log "- Amplifier on" time
+		sleep $ampdelay
+		relayon=1 ;;
+	esac
+}
+
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
-kbd= gpio= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 buttonspid=
+kbd= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
+on=1 off=0 output=op buttonspid=
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -237,15 +252,13 @@ cd "${ring%/*}"
 Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
 
-# For testing without gpio installed
-gpio=$(type -p gpio) || gpio(){ :;}
-
 # Setting up pins
-! gpio export $relaypin out &&
-	Log "* Setting up relay pin $relaypin for output failed" && exit 1 ||
-	Log "> Relay pin $relaypin used for output"
-gpio -g write $relaypin $off && relayon=0 ||
-	Log "* Error turning off amplifier"
+((sim)) && Log "> Simulate, not writing to gpio device"
+if [[ ! -a $relay ]]
+then Gpio up
+else Log "> Relay pin $pin already exported"
+fi
+Gpio out
 trap Exittrap QUIT EXIT
 
 Log "- Validating Date information in '$(readlink -f $ringdates)'"
@@ -268,9 +281,9 @@ do # Validate and split dates
 		date -d "$date2" &>/dev/null || Error "Invalid date: '$date2'"
 		[[ $date > $date2 ]] && Error "The first date can't be after the second"
 		s=${line:21:1} a=${line:22:1}
-		[[ ${s// } && $s != [a-zA-Z] ]] &&
+		[[ ${s// } && ! $s = [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
-		[[ ${a// } && $a != '+' ]] &&
+		[[ ${a// } && ! $a = '+' ]] &&
 			Error "After the schedule only space or '+' allowed, not '$a'"
 		while [[ ! $date > $date2 ]]
 		do
@@ -284,10 +297,10 @@ do # Validate and split dates
 			date=$(date -d "tomorrow $date" +'%Y-%m-%d')
 		done
 	else
-		[[ ${s// } && $s != [a-zA-Z] ]] &&
+		[[ ${s// } && ! $s = [a-zA-Z] ]] &&
 			Error "Schedule should be alphabetic, not '$s'"
 		a=${line:11:1}
-		[[ ${a// } && $a != '+' ]] &&
+		[[ ${a// } && ! $a = '+' ]] &&
 			Error "After the schedule only space or '+' allowed, not '$a'"
 		[[ $date < $today ]] && continue
 		if [[ ${s// } ]]
@@ -316,10 +329,10 @@ do # Validate and store times
 	[[ ${ringcode// } ]] || ringcode=0
 	[[ $ringcode = [-0-9] ]] ||
 		Error "Ringcode should be single digit, space or '-', not '$ringcode'"
-	[[ $ringcode != '-' && ! -f $soundfiles/$ringcode.ring ]] &&
+	[[ ! $ringcode = '-' && ! -f $soundfiles/$ringcode.ring ]] &&
 		Error "Sound filename '$soundfiles/$ringcode.ring' missing"
 	# Skip if no dates with this schedule and it is not a Normal schedule
-	[[ -z ${specialdates[$s]} && $s != '_' ]] && continue
+	[[ -z ${specialdates[$s]} && ! $s = '_' ]] && continue
 	# Mute '-' ringcodes
 	[[ $ringcode = '-' ]] &&
 		muteds[$time]=${specialdates[$s]} schedules[$s]+=" $time-Muted" ||
@@ -370,14 +383,11 @@ done
 	Log "* Total of $errors error$s, not starting Ring program" && exit 2
 Log "> All input files are valid"
 
-[[ $gpio ]] ||
-	Log "* Essential package 'wiringpi' (application 'gpio') not installed"
-
 # Starting the button interface
 [[ -f $state ]] || echo -n "0">"$state"
-DISPLAY=$display $buttons &>/tmp/buttons.log &
+DISPLAY=$display $buttons >"$touchlog" &
 buttonspid=$!
-sleep 1
+sleep $startdelay
 ! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
 Log "> Touchscreen ready, pid: $buttonspid"
 

@@ -1,6 +1,7 @@
-# piring v3
+# piring v2
+_Branch 'ubuntu1804'_
 **Control a school sound system from a Raspberry Pi with touchscreen**
-* OS: RaspiOS (based on Debian 11 Bullseye and beyond)
+Using Ubuntu 18.04 and software that is no longer well supported beyond 2022
 
 ## Usage
 `ring`
@@ -59,8 +60,8 @@ announcement or play (alarm) sound files.
   All characters after position 12 resp. 23 are ignored as a comment.
 
 ## Required
-raspi-gpio coreutils(sleep fold readlink) sox(play) date
-[$buttons: python3-pygame] [installation: tmux(optional)]
+wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
+[$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
 
 ## Deployment
 See file `INSTALL`

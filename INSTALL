@@ -1,46 +1,28 @@
 ## Installing piring
+# Hardware: Raspberry Pi with 3.5" touchscreen (ADS7846) and relay board.
+
+# Put the LCDwiki latest Raspbian image on an SD card: http://www.lcdwiki.com/3.5inch_RPi_Display
+
+# Boot up with the 3.5" screen attached, setup the wireless so ssh works
+
+# Login through ssh (user: pi, password: raspberrypi)
 sudo -i
-# Hardware: Raspberry Pi (3B) with touchscreen (ADS7846) and relay board.
-# OS: Ubuntu MATE 18.04.2 / Debian / RaspberryOS
-# Write OS image to microSD card: https://ubuntu-mate.org/download/armhf/
-# Refresh the repo info, upgrade and install prerequisite packages and git:
-apt update
-apt install sox python-pygame tmux git ssh
-apt full-upgrade
-# Set up the network and the ssh server for access in case of screen problems!
+# Change the password for sure, if desired, run: raspi-config
+# Set the desired screensaver timeout, and no lock!
 
-# Get screen driver from https://github.com/lcdwiki/LCD-show-ubuntu
-git clone https://github.com/lcdwiki/LCD-show-ubuntu.git
-cd LCD-show-ubuntu
-./LCD35-show  # It will reboot
+# Refresh the repo info, upgrade and install prerequisite packages and git
+apt update && apt full-upgrade
+apt install sox tmux  # python3-pygame and git are already installed!
 
-# You might want to run raspi-config to set partition size, passwords etc.:
-#raspi-config
+# Quit root and change to the default user
+exit
 
-# Tweak firmware:
-echo ads7846 >>/etc/modules
-echo -e "# quicker sound\nhdmi_ignore_edid_audio=1\ndisable_touchscreen=0\nenable_dpi_lcd=1" >>/boot/firmware/usercfg.txt
-
-# Allow user to run gpio binary:
-chmod u+s /usr/bin/gpio
-
-# Wisely pick your desired screensaver or power timeout, and no lock!
-# Allow autostart desktop through Lightdm:
-echo -e "[Seat:*]\nautologin-user=pi\nautologin-session=mate" >\
-		/etc/lightdm/lightdm.conf
-gpasswd -a pi nopasswdlogin
-
-# Allow audio use
-gpasswd -a pi audio
-
-# Clone this repo as user pi:
-sudo -l pi
-cd
+# Login on ssh and clone this repo as the main user
 mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
-cd piring
 
-# Setup autostart on (re)boot (authorization asked):
-source rc.local
-
+# Set autostart with cron
+crontab -e
+# Make sure this line is there:  @reboot /home/USERNAME/git/piring/atreboot
+#  with USERNAME replaced by the actual user name

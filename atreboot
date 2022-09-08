@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# atreboot - Run at reboot by crontab
+
+# Start 'ring' on a tmux session if no session exists yet
+[[ $TMUX ]] && echo "Running tmux session, not starting, try: tmux a" && exit
+cd
+/usr/bin/tmux new-s -d "git/piring/ring |tee -a ring.log"
