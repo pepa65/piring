@@ -52,10 +52,6 @@
 15:00L  8th period
 15:40L  School end
 
-# p+: Bell at noon instead of 12:20pm
-12:00p  Noon bell
-12:20p- No 12:20pm bell
-
 # P+: Normal schedule, but no classes after lunch
 #12:20P- Lunch break end
 12:25P- 5th period
@@ -83,6 +79,10 @@
 # B+: Buddy classes before Late start
 07:55B
 08:00B
+
+# n+: Bell at noon instead of 12:20pm
+12:00p  Noon bell
+12:20p- No 12:20pm bell
 
 # G+: Game afternoon
 13:20G- 6th period
