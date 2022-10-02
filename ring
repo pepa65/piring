@@ -244,7 +244,7 @@ Gpio(){ # 1:up|down|out|on|off  I:sim,pin,gpiodelay,relay,off,on  IO:relayon
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
 kbd= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=1 off=0 output=op buttonspid=
+on=0 off=1 output=op buttonspid=  # reversed on & off
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
