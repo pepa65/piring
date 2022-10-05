@@ -2,13 +2,14 @@
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
 ## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
 
-# Normal schedule 2020/2021/2022
+# Normal schedule 2020/2021/2022/2023
 # X: No regular classes (but screens on)
-# L: Late schedule 2020/2021/2022
+# L: Late schedule 2020/2021/2022/2023
 # B+: Buddy classes before Late start
 # P+: Afternoon off Normal schedule
 # p+: Afternoon off Late schedule
 # n+: Bell at noon instead of 12:20pm
+# E: Only Elementary
 
 # 2022/2023
 2022-08-15X  Secondary Student Orientation
@@ -17,8 +18,12 @@
 2022-09-26B+ Math buddies
 2022-09-26L  Late Start
 2022-10-07L  Late Start
+2022-10-12E  Only Elementary
+2022-10-13   School closed
+2022-10-14E  Only Elementary
 2022-10-21X  In-service day
 2022-11-11L  Late Start
+2022-11-24P+ Thanksgiving
 2022-12-05   Closed
 2022-12-09L  Late Start
 2022-12-12   Closed
