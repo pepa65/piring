@@ -92,25 +92,25 @@
 # E: Only Elementary
 07:55E
 08:00E  1st period
-#08:50
-#08:55   2nd period
+08:50E
+08:55E  2nd period
 09:45E  Morning break
 #09:50
-09:55E  3rd period (Elementary break end)
+#09:55   3rd period (Elementary break end)
 10:00E  (Elementary restart)
-#10:45
-#10:50   4th period
+10:45E
+10:50E  4th period
 11:40E  Lunch break
-#12:00 5 Covid lunch half-bell
+#12:00E  Covid lunch half-bell
 12:20E
 12:25E  5th period
-#13:15
-#13:20   6th period
-#14:00   (Elementary break: no bell)
+13:15E
+13:20E  6th period
+14:00E  (Elementary break: bell!)
 14:10E  (Elementary break end)
 14:15E  7th (shorter) period
-#14:55
-#15:00   8th (shorter) period
+14:55E
+15:00E  8th (shorter) period
 15:40E  School end
 
 
