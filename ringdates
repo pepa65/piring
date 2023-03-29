@@ -10,6 +10,7 @@
 # p+: Afternoon off Late schedule
 # n+: Bell at noon instead of 12:20pm
 # E: Only Elementary
+# t+: No bells after 2:10pm
 
 # 2022/2023
 2022-08-15X  Secondary Student Orientation
@@ -36,6 +37,7 @@
 2023-02-10   Closed
 2023-02-13   Closed
 2023-03-10L  Late Start
+2023-03-31t+ School ends at 2:10 no Songkraan celebration
 2023-04-03/2023-04-14
 2023-05-04   Closed
 2023-05-12L  Late Start
