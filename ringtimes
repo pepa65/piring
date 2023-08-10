@@ -2,14 +2,22 @@
 ## s: space|empty (= Normal schedule) | alphabetical (= Special schedule code)
 ## R: numerical (= Ringtone code) | space|empty (= Ringtone code 0) | - (= mute)
 
-# Normal schedule 2020/2021/2022/2023
+# Normal schedule 2020/2021/2022/2023/2024
 # X: No regular classes (but screens on)
 # L: Late schedule 2020/2021/2022/2023
-# B+: Buddy classes before Late start  
 # P+: Afternoon off Normal schedule
-# p+: Afternoon off Late schedule
-# n+: Bell at noon instead of 12:20pm
+# p+: Late schedule, but no classes after lunch
+# B+: Buddy classes before Late start  
 # E: Only Elementary
+# n+: Bell at noon instead of 12:20pm
+# G+: Game afternoon
+# r+: Pep rally on 2021-04-21
+# I+: International day
+# T+: Normal schedule until lunch, end of Q2 afternoon
+# H+: Open House 2021
+# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
+# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+# e+: No ELementary: no 10:00 bell
 
 # Normal schedule 2020/2021/2022/2023
 07:55
@@ -113,7 +121,6 @@
 15:00E  8th (shorter) period
 15:40E  School end
 
-
 # n+: Bell at noon instead of 12:20pm
 12:00p  Noon bell
 12:20p- No 12:20pm bell
@@ -172,3 +179,8 @@
 15:00t- 8th (shorter) period
 15:40t- School end
 
+# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+14:00S  Final bell for Elementary
+
+# e+: No ELementary: no 10:00 bell
+10:00e- No Elementary Break End
