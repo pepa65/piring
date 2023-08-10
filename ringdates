@@ -2,20 +2,59 @@
 ## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
 ## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
 
-# Normal schedule 2020/2021/2022/2023
+# Normal schedule 2020/2021/2022/2023/2024
 # X: No regular classes (but screens on)
 # L: Late schedule 2020/2021/2022/2023
-# B+: Buddy classes before Late start
 # P+: Afternoon off Normal schedule
-# p+: Afternoon off Late schedule
-# n+: Bell at noon instead of 12:20pm
+# p+: Late schedule, but no classes after lunch
+# B+: Buddy classes before Late start  
 # E: Only Elementary
-# t+: No bells after 2:10pm
+# n+: Bell at noon instead of 12:20pm
+# G+: Game afternoon
+# r+: Pep rally on 2021-04-21
+# I+: International day
+# T+: Normal schedule until lunch, end of Q2 afternoon
+# H+: Open House 2021
+# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
+# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+# e+: No ELementary: no 10:00 bell
+
+# 2024/2025
+2024-08-05/2024-08-13X  (New) Teacher Orientation and Welcoming Students
 
 # 2023/2024
-2023-08-07/2023-08-11X  Teacher Orientation
-2023-08-14   No school
-2023-08-15   No school
+2023-08-07/2023-08-15X  (New) Teacher Orientation and Welcoming Students
+2023-08-17/2023-08-19S+ Elementary Finishes at 14:00
+#2023-08-31   Secondary Student Open House
+2023-09-01L  Late Start
+2023-09-13/2023-09-15E  Youth Retreat: Only Elementary
+2023-10-06L  Late Start
+2023-10-13   Closed for Death of Rama IX
+2023-10-20X  In-Service
+2023-10-23   Closed
+2023-11-06e+ No Elementary
+2023-12-05   Closed (Old Kings Birthday)
+2023-12-08L  Late Start
+2023-12-11   Closed
+2023-12-15P+ Christmas Program
+2023-12-18/2024-01-01   Christmas Break
+2024-01-02X  Work Day
+2024-01-08X  In-Service
+2024-01-17X  Sports Day
+2024-01-24t+ Wai Kru Day
+2024-02-02L  Late Start
+2024-02-09   Closed
+2024-02-12   Closed
+#2024-02-22   International Day
+2024-03-01L  Late Start
+2024-03-15X  In-Service
+2024-04-03t+ Songkraan Celebration
+2024-04-04/2024-04-17   Songkraan Break
+2024-05-06   Closed
+2024-05-10L  Late Start
+2024-05-24X  Last Day of School
+2024-05-27X  Teacher Work Day
+2024-05-28/2024-08-02   Summer Break
 
 # 2022/2023
 2022-08-15X  Secondary Student Orientation
@@ -47,9 +86,9 @@
 2023-05-04   Closed
 2023-05-12L  Late Start
 2023-05-12t+ Pennington farewell
-2023-05-29X  Teacher Work day
 2023-05-26X  Family Fun day
-2023-05-30/2023-08-04   Summer Break
+2023-05-29X  Teacher Work day
+2023-05-30/2023-08-06   Summer Break
 
 # 2021/2022
 #2021-09-02H+ Open House 2021
