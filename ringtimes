@@ -5,10 +5,10 @@
 # Normal schedule 2020/2021/2022/2023/2024
 # X: No regular classes (but screens on)
 # L: Late schedule 2020/2021/2022/2023/2024
+# B: Buddy classes before Late start  
+# p: Late schedule, but no classes after lunch
+# E+: Only Elementary
 # P+: Afternoon off Normal schedule
-# p+: Late schedule, but no classes after lunch
-# B+: Buddy classes before Late start  
-# E: Only Elementary
 # n+: Bell at noon instead of 12:20pm
 # G+: Game afternoon
 # r+: Pep rally on 2021-04-21
@@ -69,6 +69,27 @@
 15:00L  8th period
 15:40L  School end
 
+# B: Buddy classes before Late Start 2023/2024
+07:55B
+08:00B  Buddy Class
+
+# p: Late schedule, but no classes after lunch
+#12:40p- Lunch break end
+12:45p- 5th period
+13:25p-
+13:30p- 6th period
+#14:00M- (Elementary break: no bell)
+14:10p- (Elementary break end)
+14:15p- 7th (shorter) period
+14:55p-
+15:00p- 8th (shorter) period
+15:40p- School end
+
+# E+: Only Elementary (different from Normal)
+09:50E-
+09:55E- 3rd period (Elementary break end)
+14:00E  (Elementary break: bell!)
+
 # P+: Normal schedule, but no classes after lunch
 #12:20P- Lunch break end
 12:25P- 5th period
@@ -81,68 +102,9 @@
 15:00P- 8th (shorter) period
 15:40P- School end
 
-# p+: Late schedule, but no classes after lunch
-#12:40p- Lunch break end
-12:45p- 5th period
-13:25p-
-13:30p- 6th period
-#14:00M- (Elementary break: no bell)
-14:10p- (Elementary break end)
-14:15p- 7th (shorter) period
-14:55p-
-15:00p- 8th (shorter) period
-15:40p- School end
-
-# B: Buddy classes before Late start + Late Start 2023/2024
-07:55B
-08:00B  Buddy Class
-08:55B 
-09:00B  1st period
-09:40B
-09:45B  2nd period
-10:25B  Morning break
-10:30B
-10:35B  3rd period
-11:15B
-11:20B  4th period
-12:00B  Lunch break
-12:40B
-12:45B  5th period
-13:25B
-13:30B  6th period
-14:10B
-14:15B  7th period
-14:55B
-15:00B  8th period
-15:40B  School end
-
-# E: Only Elementary
-07:55E
-08:00E  1st period
-08:50E
-08:55E  2nd period
-09:45E  Morning break
-#09:50
-#09:55   3rd period (Elementary break end)
-10:00E  (Elementary restart)
-10:45E
-10:50E  4th period
-11:40E  Lunch break
-#12:00E  Covid lunch half-bell
-12:20E
-12:25E  5th period
-13:15E
-13:20E  6th period
-14:00E  (Elementary break: bell!)
-14:10E  (Elementary break end)
-14:15E  7th (shorter) period
-14:55E
-15:00E  8th (shorter) period
-15:40E  School end
-
 # n+: Bell at noon instead of 12:20pm
-12:00p  Noon bell
-12:20p- No 12:20pm bell
+12:00n  Noon bell
+12:20n- No 12:20pm bell
 
 # G+: Game afternoon
 13:20G- 6th period
@@ -156,7 +118,7 @@
 # r+: Pep rally on 2021-04-21
 11:25r  Start rally
 
-# I+: International day
+# I+: International day: Normal after 10:00
 08:50I-
 08:55I-
 09:45I- Early start 3rd period

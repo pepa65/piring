@@ -385,10 +385,10 @@ Log "> All input files are valid"
 
 # Starting the button interface
 [[ -f $state ]] || echo -n "0">"$state"
-DISPLAY=$display $buttons >"$touchlog" &
+((!sim)) && DISPLAY=$display $buttons >"$touchlog" &
 buttonspid=$!
 sleep $startdelay
-! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
+((!sim)) && ! kill -0 $buttonspid 2>/dev/null && Log "* Can't start 'buttons'" && exit 3
 Log "> Touchscreen ready, pid: $buttonspid"
 
 # Main loop
