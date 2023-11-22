@@ -9,6 +9,7 @@
 # p: Late schedule, but no classes after lunch
 # E+: Only Elementary
 # P+: Afternoon off Normal schedule
+# Q+: No Lunch bells
 # n+: Bell at noon instead of 12:20pm
 # G+: Game afternoon
 # r+: Pep rally on 2021-04-21
@@ -165,3 +166,8 @@
 
 # e+: No ELementary: no 10:00 bell
 10:00e- No Elementary Break End
+
+# Q+: No Lunch bells
+11:40Q- No Lunch Break bell
+12:20Q- No Lunch End bell
+
