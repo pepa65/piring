@@ -3,22 +3,22 @@
 ## R: numerical (= Ringtone code) | space|empty (= Ringtone code 0) | - (= mute)
 
 # Normal schedule 2020/2021/2022/2023/2024
-# X: No regular classes (but screens on)
-# L: Late schedule 2020/2021/2022/2023/2024
 # B: Buddy classes before Late start  
-# p: Late schedule, but no classes after lunch
 # E+: Only Elementary
-# P+: Afternoon off Normal schedule
-# Q+: No Lunch bells
-# n+: Bell at noon instead of 12:20pm
-# G+: Game afternoon
-# r+: Pep rally on 2021-04-21
-# I+: International day
-# T+: Normal schedule until lunch, end of Q2 afternoon
-# H+: Open House 2021
-# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
-# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
 # e+: No ELementary: no 10:00 bell
+# G+: Game afternoon
+# H+: Open House 2021
+# I+: International day
+# L: Late schedule 2020/2021/2022/2023/2024
+# n+: Bell at noon instead of 12:20pm
+# P+: Afternoon off Normal schedule
+# p: Late schedule, but no classes after lunch
+# Q+: No Lunch bells
+# r+: Pep rally on 2021-04-21
+# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+# T+: Normal schedule until lunch, end of Q2 afternoon
+# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
+# X: No regular classes (but screens on)
 
 # Normal schedule 2020/2021/2022/2023/2024
 07:55
@@ -170,4 +170,3 @@
 # Q+: No Lunch bells
 11:40Q- No Lunch Break bell
 12:20Q- No Lunch End bell
-

@@ -82,6 +82,7 @@ Error(){ # IO:error  I:i,line  $1:message
 	Log "* $l $1"
 }
 
+# Actually ring a bell
 Ring(){ # IO:playing  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	local sched ringcode snd
 	[[ $1 = '_' ]] && sched='Normal schedule' || sched="schedule '$1'"
@@ -97,6 +98,7 @@ Ring(){ # IO:playing  I:now,pin,relay,ampdelay,time,shutoffdelay  $1:schedule
 	Gpio off
 }
 
+# Handle button inputs
 Button(){ # IO:playing  I:state,button,relayon,soundfiles
 	local button=$(<"$state") snd
 	# States: relay on/off and playing yes/no; transitions: button 0..4
@@ -141,19 +143,21 @@ Button(){ # IO:playing  I:state,button,relayon,soundfiles
 	((button==1)) && Log "- Announcement: $snd" time
 }
 
-Bellcheck(){ # IO:nowold,daylogged
-		# I:nobellsdates,specialdates,schedules,additionals,ringcodes,muteds
+# See if a bell needs to be ringed
+Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additionals,ringcodes,muteds
 	# Once daily log and ring if required
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d')
 	local additoday=0 spectoday=0 rung=0 speclogged=0
 
-	# Ignore if this time has been checked earlier
-	[[ $now = $nowold ]] && return
+	# Skip if this time has been checked already earlier
+	[[ $now = $nowold ]] &&
+		return
 	nowold=$now
 
 	# If muted, register now as rung
 	[[ "${muteds[$now]} " = *" $today "* ]] &&
-		rung=1 && Log "> $today muting: $now"
+		rung=1 &&
+		Log "> $today muting: $now"
 
 	# No daylog yet at the start of a new day (or at program startup)
 	[[ $now = 00:00 ]] && daylogged=0
@@ -168,8 +172,12 @@ Bellcheck(){ # IO:nowold,daylogged
 			((! daylogged && ++speclogged)) &&
 				Log "> $today '$s${additionals[$s]}' day:${schedules[$s]}"
 			# If any Special schedules is Additional today, mark it
-			[[ ${additionals[$s]} ]] && additoday=1
-			((! rung)) && [[ "${schedules[$s]} " = *" $now "* ]] && rung=1 && Ring $s
+			[[ ${additionals[$s]} ]] &&
+				additoday=1
+			((! rung)) &&
+				[[ "${schedules[$s]} " = *" $now "* ]] &&
+				rung=1 &&
+				Ring $s
 		fi
 	done
 	((speclogged && ! additoday)) && daylogged=1
@@ -178,7 +186,9 @@ Bellcheck(){ # IO:nowold,daylogged
 	if [[ "$nobellsdates " = *" $today "* ]]
 	then
 		# Log No-Bells day if nothing logged yet today
-		((! daylogged)) && daylogged=1 && Log "> $today No-Bells day"
+		((! daylogged)) &&
+			daylogged=1 &&
+			Log "> $today No-Bells day"
 		return
 	fi
 
@@ -186,17 +196,22 @@ Bellcheck(){ # IO:nowold,daylogged
 	if (($(date +'%u')>5))
 	then
 		# Log Weekend day if nothing logged yet today
-		((! daylogged)) && daylogged=1 && Log "> $today $(date +'%A')"
+		((! daylogged)) &&
+			daylogged=1 &&
+			Log "> $today $(date +'%A')"
 		return
 	fi
 
 	# Log Normal day if nothing (or only special schedules) logged for today
-	((! daylogged)) && daylogged=1 &&
+	((! daylogged)) &&
+		daylogged=1 &&
 		Log "> $today Normal day:${schedules['_']}"
 
 	# If not rung yet and: additional schedule or no special schedules at all
 	((! rung && (additoday || ! spectoday))) &&
-		[[ "${schedules['_']} " = *" $now "* ]] && rung=1 && Ring _
+		[[ "${schedules['_']} " = *" $now "* ]] &&
+		rung=1 &&
+		Ring _
 }
 
 Exittrap(){ # I:playing,buttonspid
@@ -290,7 +305,9 @@ do # Validate and split dates
 			if [[ ! $date < $today ]]
 			then
 				if [[ ${s// } ]]
-				then specialdates[$s]+=" $date" additionals[$s]=${a// }
+				then
+					specialdates[$s]+=" $date"
+					additionals[$s]=${a// }
 				else (($(date -d $date +'%u')<6)) && nobellsdates+=" $date"
 				fi
 			fi
@@ -304,7 +321,9 @@ do # Validate and split dates
 			Error "After the schedule only space or '+' allowed, not '$a'"
 		[[ $date < $today ]] && continue
 		if [[ ${s// } ]]
-		then specialdates[$s]+=" $date" additionals[$s]=${a// }
+		then
+			specialdates[$s]+=" $date"
+			additionals[$s]=${a// }
 		else (($(date -d $date +'%u')<6)) && nobellsdates+=" $date"
 		fi
 	fi
@@ -334,9 +353,14 @@ do # Validate and store times
 	# Skip if no dates with this schedule and it is not a Normal schedule
 	[[ -z ${specialdates[$s]} && ! $s = '_' ]] && continue
 	# Mute '-' ringcodes
-	[[ $ringcode = '-' ]] &&
-		muteds[$time]=${specialdates[$s]} schedules[$s]+=" $time-Muted" ||
-		ringcodes[$time$s]=$ringcode schedules[$s]+=" $time"
+	if [[ $ringcode = '-' ]]
+	then
+		muteds[$time]=${specialdates[$s]}
+		schedules[$s]+=" $time-Muted"
+	else
+		ringcodes[$time$s]=$ringcode
+		schedules[$s]+=" $time"
+	fi
 done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringtimes"
