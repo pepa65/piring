@@ -16,6 +16,7 @@
 # Q+: No Lunch bells
 # r+: Pep rally on 2021-04-21
 # S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+# s+: Sports Day meeting at 11:55 am
 # T+: Normal schedule until lunch, end of Q2 afternoon
 # t+: School ends at 14:10 in the first 2 weeks of 2020/2021
 # X: No regular classes (but screens on)
@@ -170,3 +171,6 @@
 # Q+: No Lunch bells
 11:40Q- No Lunch Break bell
 12:20Q- No Lunch End bell
+
+# s+: Sports Day meeting at 11:55 am
+11:55s  Sports Day meeting
