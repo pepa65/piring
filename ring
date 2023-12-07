@@ -355,7 +355,7 @@ do # Validate and store times
 	# Mute '-' ringcodes
 	if [[ $ringcode = '-' ]]
 	then
-		muteds[$time]=${specialdates[$s]}
+		muteds[$time]+=${specialdates[$s]}
 		schedules[$s]+=" $time-Muted"
 	else
 		ringcodes[$time$s]=$ringcode
@@ -365,7 +365,6 @@ done
 ((error==1)) && s= || s=s
 ((error)) && Log "* $error error$s in $ringtimes"
 ((errors+=error))
-
 # Listing ringtone files
 rings=${ringcodes[@]} rings=$(sort -u <<<"${rings// /$'\n'}")
 for r in $rings

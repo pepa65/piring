@@ -23,26 +23,26 @@
 # p: Late schedule, but no classes after lunch
 
 # Normal schedule 2020/2021/2022/2023/2024
-07:55
+07:55   Pre-1st period
 08:00   1st period
-08:50
+08:50   Pre-2nd period
 08:55   2nd period
 09:45   Morning break
-09:50
+09:50   Pre-3rd period
 09:55   3rd period (Elementary break end)
 10:00   (Elementary restart)
-10:45
+10:45   Pre-4th period
 10:50   4th period
 11:40   Lunch break
 #12:00 5 Covid lunch half-bell
-12:20
+12:20   Pre-5th period
 12:25   5th period
-13:15
+13:15   Pre-6th period
 13:20   6th period
 #14:00   (Elementary break start: teachers time themselves)
-14:10   (Elementary break end)
+14:10   Pre-7th periond (Elementary break end)
 14:15   7th (shorter) period
-14:55
+14:55   Pre-8th period
 15:00   8th (shorter) period
 15:40   School end
 
@@ -51,55 +51,55 @@
 # L: Late schedule 2020/2021/2022/2023/2024
 #07:45L  Teacher training
 #08:45L
-08:55L 
+08:55L  Pre-1st period
 09:00L  1st period
-09:40L
+09:40L  Pre-2nd period
 09:45L  2nd period
 10:25L  Morning break
-10:30L
+10:30L  Pre-3rd period
 10:35L  3rd period
-11:15L
+11:15L  Pre-4th period
 11:20L  4th period
 12:00L  Lunch break
 #12:20L5 Covid lunch half-bell
-12:40L
+12:40L  Pre-5th period
 12:45L  5th period
-13:25L
+13:25L  Pre-6th period
 13:30L  6th period
-14:10L
+14:10L  Pre-7th period
 14:15L  7th period
-14:55L
+14:55L  Pre-8th period
 15:00L  8th period
 15:40L  School end
 
 # B: Buddy classes before Late Start 2023/2024
-07:55B
+07:55B  Pre-Buddy Class
 08:00B  Buddy Class
 
 # p: Late schedule, but no classes after lunch
 #12:40p- Lunch break end
 12:45p- 5th period
-13:25p-
+13:25p- Pre-6th period
 13:30p- 6th period
 14:10p- (Elementary break end)
 14:15p- 7th (shorter) period
-14:55p-
+14:55p- Pre-8th period
 15:00p- 8th (shorter) period
 15:40p- School end
 
 # E+: Only Elementary (different from Normal)
-09:50E-
-09:55E- 3rd period (Elementary break end)
+09:50E- Pre-3rd period
+09:55E- 3rd period (Pre-Elementary break end)
 14:00E  (Elementary break: bell!)
 
 # P+: Normal schedule, but no classes after lunch
 #12:20P- Lunch break end
 12:25P- 5th period
-13:15P-
+13:15P- Pre-6th period
 13:20P- 6th period
 14:10P- (Elementary break end)
 14:15P- 7th (shorter) period
-14:55P-
+14:55P- Pre-8th period
 15:00P- 8th (shorter) period
 15:40P- School end
 
@@ -112,7 +112,7 @@
 #14:00G- (Elementary break: no bell)
 14:10G- (Elementary break end)
 14:15G- 7th (shorter) period
-14:55G-
+14:55G- Pre-8th period
 15:00G- 8th (shorter) period
 15:40G- School end
 
@@ -120,22 +120,22 @@
 11:25r  Start rally
 
 # I+: International day: Normal after 10:00
-08:50I-
-08:55I-
-09:45I- Early start 3rd period
-09:50I-
-09:55I-
-10:00I-
+08:50I- Pre-2nd period
+08:55I- 2nd period
+09:45I- Morning break
+09:50I- Pre-3rd period
+09:55I- 3rd period (Elementary break end)
+10:00I- Elementary restart)
 
 # T+: Normal schedule until lunch, end of Q2 afternoon
 #13:15  Call to auditorium
 #13:20  Final activities
 14:00T  Dismiss school
-14:10T-
-14:15T-
-14:55T-
-15:00T-
-15:40T-
+14:10T- Pre-7th periond (Elementary break end)
+14:15T- 7th (shorter) period
+14:55T- Pre-8th period
+15:00T- 8th (shorter) period
+15:40T- School end
 
 # H+: Open House 2021
 18:30H5
@@ -157,7 +157,7 @@
 
 # t+: School ends at 14:10 in the first 2 weeks of 2020/2021
 14:15t- 7th (shorter) period
-14:55t-
+14:55t- Pre-8th period
 15:00t- 8th (shorter) period
 15:40t- School end
 
