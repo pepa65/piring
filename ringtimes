@@ -1,18 +1,15 @@
 ## HH:MMsR (= time)
 ## s: space|empty (= Normal schedule) | alphabetical (= Special schedule code)
-## R: numerical (= Ringtone code) | space|empty (= Ringtone code 0) | - (= mute)
+## R: numerical (= Ringtone code) | space|empty (= Ringtone 0) | '-' (= mute)
 
 # Normal schedule 2020/2021/2022/2023/2024
-# B: Buddy classes before Late start  
 # E+: Only Elementary
 # e+: No ELementary: no 10:00 bell
 # G+: Game afternoon
 # H+: Open House 2021
 # I+: International day
-# L: Late schedule 2020/2021/2022/2023/2024
 # n+: Bell at noon instead of 12:20pm
 # P+: Afternoon off Normal schedule
-# p: Late schedule, but no classes after lunch
 # Q+: No Lunch bells
 # r+: Pep rally on 2021-04-21
 # S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
@@ -20,6 +17,10 @@
 # T+: Normal schedule until lunch, end of Q2 afternoon
 # t+: School ends at 14:10 in the first 2 weeks of 2020/2021
 # X: No regular classes (but screens on)
+
+# L: Late schedule 2020/2021/2022/2023/2024
+# B: Buddy classes before Late start
+# p: Late schedule, but no classes after lunch
 
 # Normal schedule 2020/2021/2022/2023/2024
 07:55
@@ -38,7 +39,7 @@
 12:25   5th period
 13:15
 13:20   6th period
-#14:00   (Elementary break: no bell)
+#14:00   (Elementary break start: teachers time themselves)
 14:10   (Elementary break end)
 14:15   7th (shorter) period
 14:55
@@ -80,7 +81,6 @@
 12:45p- 5th period
 13:25p-
 13:30p- 6th period
-#14:00M- (Elementary break: no bell)
 14:10p- (Elementary break end)
 14:15p- 7th (shorter) period
 14:55p-
@@ -97,7 +97,6 @@
 12:25P- 5th period
 13:15P-
 13:20P- 6th period
-#14:00M- (Elementary break: no bell)
 14:10P- (Elementary break end)
 14:15P- 7th (shorter) period
 14:55P-
