@@ -3,24 +3,26 @@
 ## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
 
 # Normal schedule 2020/2021/2022/2023/2024
-# X: No regular classes (but screens on)
-# L: Late schedule 2020/2021/2022/2023
-# P+: Afternoon off Normal schedule
-# p+: Late schedule, but no classes after lunch
 # B: Buddy classes before Late start + Late start
 # E: Only Elementary
-# n+: Bell at noon instead of 12:20pm
-# G+: Game afternoon
-# r+: Pep rally on 2021-04-21
-# I+: International day
-# T+: Normal schedule until lunch, end of Q2 afternoon
-# H+: Open House 2021
-# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
-# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
 # e+: No ELementary: no 10:00 bell
+# G+: Game afternoon
+# H+: Open House 2021
+# I+: International day
+# L: Late schedule 2020/2021/2022/2023
+# n+: Bell at noon instead of 12:20pm
+# P+: Afternoon off Normal schedule
+# p+: Late schedule, but no classes after lunch
+# Q+: No Lunch bells
+# r+: Pep rally on 2021-04-21
+# S+: Elementary ends at 14:00 on the first 3 days of 2023/2024
+# s+: Sports Day meeting at 11:55 am
+# T+: Normal schedule until lunch, end of Q2 afternoon
+# t+: School ends at 14:10 in the first 2 weeks of 2020/2021
+# X: No regular classes (but screens on)
 
 # 2024/2025
-2024-08-05/2024-08-13X  (New) Teacher Orientation and Welcoming Students
+#2024-08-05/2024-08-13X  (New) Teacher Orientation and Welcoming Students
 
 # 2023/2024
 2023-08-07/2023-08-15X  (New) Teacher Orientation and Welcoming Students
@@ -30,14 +32,19 @@
 2023-09-13/2023-09-15E  Youth Retreat: Only Elementary
 2023-10-06L  Late Start
 2023-10-13   Closed for Death of Rama IX
-2023-10-16B  Math Buddy classes + Late Schedule
+2023-10-16B  Math Buddy classes
+2023-10-16L  Late Schedule
 2023-10-20X  In-Service
 2023-10-23   Closed
 2023-11-06e+ No Elementary
+2023-11-10L  Late Start
+2023-11-24Q+ No Lunch bells
+2023-11-24P+ Afternoon off
 2023-12-05   Closed (Old Kings Birthday)
 2023-12-07E+ Christmas Story (Elementary only)
 2023-12-08L  Late Start
 2023-12-11   Closed
+2023-12-13s+ Sports Day meeting
 2023-12-15P+ Christmas Program
 2023-12-18/2024-01-01   Christmas Break
 2024-01-02X  Work Day
@@ -47,7 +54,7 @@
 2024-02-02L  Late Start
 2024-02-09   Closed
 2024-02-12   Closed
-#2024-02-22   International Day
+2024-02-22I+ International Day
 2024-03-01L  Late Start
 2024-03-15X  In-Service
 2024-04-03t+ Songkraan Celebration
@@ -56,7 +63,7 @@
 2024-05-10L  Late Start
 2024-05-24X  Last Day of School
 2024-05-27X  Teacher Work Day
-2024-05-28/2024-08-02   Summer Break
+#2024-05-28/2024-08-02   Summer Break
 
 # 2022/2023
 2022-08-15X  Secondary Student Orientation
