@@ -19,7 +19,7 @@
 # X: No regular classes (but screens on)
 
 # L: Late schedule 2020/2021/2022/2023/2024
-# B: Buddy classes before Late start + Late start
+# B: Buddy classes before Late start
 # p: Late schedule, but no classes after lunch
 
 
@@ -71,7 +71,8 @@
 2022-08-15X  Secondary Student Orientation
 2022-08-16X  Elementary Open House
 2022-09-09L  Late Start
-2022-09-26B  Math buddies + Late Start
+2022-09-26L  Late Start
+2022-09-26B  Math buddies
 2022-10-07L  Late Start
 2022-10-12E  Only Elementary
 2022-10-13   School closed
@@ -95,7 +96,7 @@
 2023-04-03/2023-04-14
 2023-05-04   Closed
 2023-05-12L  Late Start
-2023-05-12t+ Pennington farewell
+2023-05-12t  Pennington farewell
 2023-05-26X  Family Fun day
 2023-05-29X  Teacher Work day
 2023-05-30/2023-08-04   Summer Break
@@ -106,7 +107,8 @@
 2021-09-15   Youth Retreat
 2021-10-08L  Late start
 2021-10-13   Closed
-2021-10-21B  Math buddies + Late Start schedules
+2021-10-21B  Math buddies
+2021-10-21L  Late Start
 2021-10-22X  In-service day
 2021-10-25   Closed
 2021-11-01C+ Elementary Closed
@@ -143,7 +145,8 @@
 2020-10-16L  Late start
 2020-10-22X  In-service day
 2020-10-23   Closed
-2020-10-28B  Buddy classes + Late Start schedule
+2020-10-28B  Buddy classes
+2020-10-28L  Late Start schedule
 2020-11-06L  Late start
 2020-11-06p  Electricity outage in the afternoon
 2020-11-20L  Late start
@@ -177,7 +180,8 @@
 2019-10-14
 2019-10-15X  In-service day
 2019-10-23
-2019-10-31B  Extra 8 am + Late Start
+2019-10-31B  Extra 8 am
+2019-10-31L  Late Start
 2019-11-22L  Late start
 2019-11-26   Pole-moving (no power)
 2019-12-05
@@ -185,7 +189,7 @@
 2019-12-18l+ Shortened lunch, extra bell at 12:20
 2019-12-23/2020-01-06   Christmas break
 2020-01-10L  Late start
-2020-01-10m+ Late start shortened lunch, extra bell at 12:44
+2020-01-10m  Late start shortened lunch, no extra bell at 12:45
 2020-01-14l+ Shortened lunch, extra bell at 12:20
 2020-01-15X  Sports day
 2020-01-16X  In-service day
@@ -193,8 +197,8 @@
 2020-02-17
 2020-02-21L  Late start
 2020-03-13L  Late start
-2020-03-18/2020-08-24   Covid-19 break + School-at-home Q4 + Summer break
+2020-03-18/2020-06-01   Covid-19 break + School-at-home Q4
 #2020-03-23X  In-service day cancelled
 #2020-05-01L  Late start irrelevant
 #2020-06-01X  In-service day cancelled
-#2020-06-01/2020-08-26   Summer break
+2020-06-01/2020-08-26   Summer break

@@ -87,6 +87,10 @@
 15:00p- 8th (shorter) period
 15:40p- School end
 
+# m: Late schedule, shortened lunch, no extra bell at 12:45
+12:20m  Shortened lunch
+12:45m- No extra bell at 12:45
+
 # E+: Only Elementary (different from Normal)
 09:50E- Pre-3rd period
 09:55E- 3rd period (Pre-Elementary break end)
@@ -125,7 +129,7 @@
 09:45I- Morning break
 09:50I- Pre-3rd period
 09:55I- 3rd period (Elementary break end)
-10:00I- Elementary restart)
+10:00I- (Elementary restart)
 
 # T+: Normal schedule until lunch, end of Q2 afternoon
 #13:15  Call to auditorium
