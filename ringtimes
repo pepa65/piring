@@ -126,10 +126,10 @@
 # I+: International day: Normal after 10:00
 08:50I- Pre-2nd period
 08:55I- 2nd period
-09:45I- Morning break
-09:50I- Pre-3rd period
-09:55I- 3rd period (Elementary break end)
-10:00I- (Elementary restart)
+#09:45I- Morning break
+#09:50I- Pre-3rd period
+#09:55I- 3rd period (Elementary break end)
+#10:00I- (Elementary restart)
 
 # T+: Normal schedule until lunch, end of Q2 afternoon
 #13:15  Call to auditorium
