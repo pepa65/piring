@@ -19,8 +19,8 @@
 # X: No regular classes (but screens on)
 
 # L: Late schedule 2020/2021/2022/2023/2024
-# B: Buddy classes before Late start
-# p: Late schedule, but no classes after lunch
+# B+: Buddy classes before Late start
+# p+: Late schedule, but no classes after lunch
 
 # Normal schedule 2020/2021/2022/2023/2024
 07:55   Pre-1st period
@@ -177,3 +177,15 @@
 
 # s+: Sports Day meeting at 11:55 am
 11:55s  Sports Day meeting
+
+# q: Sports Day 2024
+09:15q  Game 1
+09:50q  Game 2
+10:25q  Break
+10:30q  Game 3
+11:05q  Game 4
+11:40q  Lunch
+12:10q  Game 5
+12:45q  Game 6
+13:15q  Finals
+14:00q  School end

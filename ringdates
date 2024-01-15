@@ -19,8 +19,10 @@
 # X: No regular classes (but screens on)
 
 # L: Late schedule 2020/2021/2022/2023/2024
-# B: Buddy classes before Late start
-# p: Late schedule, but no classes after lunch
+# B+: Buddy classes before Late start
+# p+: Late schedule, but no classes after lunch
+
+# q: Sports Day 2024
 
 
 # 2024/2025
@@ -51,7 +53,7 @@
 2023-12-18/2024-01-01   Christmas Break
 2024-01-02X  Work Day
 2024-01-08X  In-Service
-2024-01-17X  Sports Day
+2024-01-17q  Sports Day
 2024-01-24t+ Wai Kru Day
 2024-02-02L  Late Start
 2024-02-09   Closed
