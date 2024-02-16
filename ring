@@ -415,8 +415,8 @@ done
 s=
 ((error!=1)) &&
 	s=s
-((error))
-	&& Log "* $error error$s in $ringtimes"
+((error)) &&
+	Log "* $error error$s in $ringtimes"
 ((errors+=error))
 # Listing ringtone files
 rings=${ringcodes[@]} rings=$(sort -u <<<"${rings// /$'\n'}")
