@@ -3,6 +3,7 @@
 ## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
 
 # Normal schedule 2020/2021/2022/2023/2024
+# d+: No bell between periods 7-8
 # E+: Only Elementary
 # e+: No ELementary: no 10:00 bell
 # G+: Game afternoon
@@ -65,6 +66,7 @@
 2024-02-29L  Late Start
 2024-03-01L  Late Start
 2024-03-15X  In-Service
+2024-03-29d+ No bell between periods 7-8
 2024-04-03t+ Songkraan Celebration
 2024-04-04/2024-04-17   Songkraan Break
 2024-05-06   Closed

@@ -3,6 +3,7 @@
 ## R: numerical (= Ringtone code) | space|empty (= Ringtone 0) | '-' (= mute)
 
 # Normal schedule 2020/2021/2022/2023/2024
+# d: No bell between periods 7-8
 # E+: Only Elementary
 # e+: No ELementary: no 10:00 bell
 # G+: Game afternoon
@@ -75,6 +76,10 @@
 14:55L  Pre-8th period
 15:00L  8th period
 15:40L  School end
+
+# d: No bell between periods 7-8
+14:55d- Pre-8th period
+15:00d- 8th (shorter) period
 
 # B: Math Buddy classes before Late Start 2023/2024
 07:55B  Pre-Buddy Class
