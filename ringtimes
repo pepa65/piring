@@ -77,21 +77,21 @@
 15:00L  8th period
 15:40L  School end
 
-# d: No bell between periods 7-8
+# d~L: No bell between periods 7-8
 14:55d- Pre-8th period
 15:00d- 8th (shorter) period
 
-# B: Math Buddy classes before Late Start 2023/2024
+# B~L: Math Buddy classes before Late Start 2023/2024
 07:55B  Pre-Buddy Class
 08:00B  Buddy Class
 
-# l: LA Buddy classes before Late Start 2023/2024
+# l~L: LA Buddy classes before Late Start 2023/2024
 07:55l  Pre-Buddy Class
 08:00l  Buddy Class 1
 08:25l  Buddy Class 2
 08:45l  Buddy Class 3
 
-# p: Late schedule, but no classes after lunch
+# p~L: Late schedule, but no classes after lunch
 #12:40p- Lunch break end
 12:45p- 5th period
 13:25p- Pre-6th period
@@ -102,7 +102,7 @@
 15:00p- 8th (shorter) period
 15:40p- School end
 
-# m: Late schedule, shortened lunch, no extra bell at 12:45
+# m~L: Late schedule, shortened lunch, no extra bell at 12:45
 12:20m  Shortened lunch
 12:45m- No extra bell at 12:45
 

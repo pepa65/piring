@@ -1,6 +1,6 @@
 ## YYYY-MM-DDsP | YYYY-MM-DD/YYYY-MM-DDsP (= date / start/end-date)
-## s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
-## P: + (= in Addition to Normal schedule) | space|empty (= Replace Normal schedule)
+## - s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
+## - P: '+' (= IN ADDITION to Normal schedule) | ' '|'' (= REPLACE Normal schedule)
 
 # Normal schedule 2020/2021/2022/2023/2024
 # d+: No bell between periods 7-8
