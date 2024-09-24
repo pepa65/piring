@@ -1,11 +1,12 @@
 ## YYYY-MM-DDsP | YYYY-MM-DD/YYYY-MM-DDsP (= date / start/end-date)
-## - s: space|empty (= No-Bells) | alphabetical (= Special schedule code)
-## - P: '+' (= IN ADDITION to Normal schedule) | ' '|'' (= REPLACE Normal schedule)
+## - s(schedule): space|empty (= Everything off) | alphabetical (= Special schedule code)
+## - P(plus): '+' (= IN ADDITION to Normal schedule) | ' '|'' (= REPLACE Normal schedule)
 
 # Normal schedule 2020/2021/2022/2023/2024
+# C+: No elementary bells
 # d+: No bell between periods 7-8
 # E+: Only Elementary
-# e+: No ELementary: no 10:00 bell
+# e+: No Elementary: no 10:00 bell
 # G+: Game afternoon
 # H+: Open House 2021
 # I+: International day
@@ -18,26 +19,17 @@
 # T+: Normal schedule until lunch, end of Q2 afternoon
 # t+: School ends at 14:10 in the first 2 weeks of 2020/2021
 # X: No regular classes (but screens on)
-
-# L: Late schedule 2020/2021/2022/2023/2024
-# B: Math Buddy classes before Late start
-# l: LA Buddy classes before Late start
-# p: Late schedule, but no classes after lunch
-
 # q: Sports Day 2024
 
-# X: No bells (but screens on)
+# L: Late Start schedule 2020/2021/2022/2023/2024
+# B: Math Buddy classes before Late Start
+# l: LA Buddy classes before Late Start
+# p: Late Start schedule, but no classes after lunch
 
 # 2024/2025
 2024-08-05/2024-08-13X  (New) Teacher Orientation and Welcoming Students
-2024-09-12X  Flooding
-2024-09-13X  Flooding
+2024-09-12/2024-09-20X  Flooding
 #2024-09-13L  Late Start
-2024-09-16X  Flooding
-2024-09-17X  Flooding
-2024-09-18X  Flooding
-2024-09-19X  Flooding
-2024-09-20X  Flooding
 #2024-09-19E  Youth Retreat: Only Elementary
 #2024-09-20X  Youth Retreat: No classes
 #2024-09-21X  Youth Retreat: No classes
@@ -55,7 +47,7 @@
 2023-08-16/2023-08-18S+ Elementary Finishes at 14:00
 #2023-08-31   Secondary Student Open House
 2023-09-01L  Late Start
-2023-09-13/2023-09-15E  Youth Retreat: Only Elementary
+2023-09-13/2023-09-15E+ Youth Retreat: Only Elementary
 2023-10-06L  Late Start
 2023-10-13   Closed for Death of Rama IX
 2023-10-16B  Math Buddy classes
@@ -174,7 +166,7 @@
 2020-10-23   Closed
 2020-10-28B  Buddy classes
 2020-10-28L  Late Start schedule
-2020-11-06L  Late start
+2020-11-06L  Late Start schedule
 2020-11-06p  Electricity outage in the afternoon
 2020-11-20L  Late start
 2020-11-26P+ Thanksgiving no classes after lunch

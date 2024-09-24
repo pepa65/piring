@@ -69,6 +69,10 @@ pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1
 # Directory names, scripts and input filenames
 ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
 ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state touchlog=$touchscreen/touch.log
+[[ -f ringtimes.csv ]] &&
+	ringtimes=ringtimes.csv
+[[ -f ringdates.csv ]] &&
+	ringdates=ringdates.csv
 
 Log(){ # $1:message $2(optional):timeflag
 	local datetime

@@ -1,8 +1,9 @@
 ## HH:MMsR (= time)
-## s: space|empty (= Normal schedule) | alphabetical (= Special schedule code)
-## R: numerical (= Ringtone code) | space|empty (= Ringtone 0) | '-' (= mute)
+## s(schedule): space|empty (= Normal schedule) | alphabetical (= Special schedule code)
+## R(ringtone): numerical (= Ringtone code) | space|empty (= Ringtone 0) | '-' (= Mute)
 
 # Normal schedule 2020/2021/2022/2023/2024
+# C+: No elementary bells
 # d: No bell between periods 7-8
 # E+: Only Elementary
 # e+: No ELementary: no 10:00 bell
@@ -17,15 +18,13 @@
 # s+: Sports Day meeting at 11:55 am
 # T+: Normal schedule until lunch, end of Q2 afternoon
 # t+: School ends at 14:10 in the first 2 weeks of 2020/2021
+# X: No regular classes (but screens on)
+# q: Sports Day
 
 # L: Late schedule 2020/2021/2022/2023/2024
 # B: Buddy classes before Late start
 # l: LA Buddy Classes before Late start
 # p: Late schedule, but no classes after lunch
-
-# X: No regular classes (but screens on)
-
-# q: Sports Day
 
 # Normal schedule 2020/2021/2022/2023/2024
 07:55   Pre-1st period

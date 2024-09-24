@@ -45,6 +45,12 @@ opposite corner. The signal pin (37) is next to the ground pin.
     (which is started from the $ring script).
   - When all is in order the program starts and output is logged to stdout.
 
+## Input from Google sheet
+When running `getcsv`, the information from `ringdates` and `ringtimes` is
+pulled from the Google sheet `Bell ring schedule` (adjust the links in `getcsv`
+to pull your own). This will generate `ringdates.csv` and `ringtimes.csv`, and
+if they are present, `ring` will use their contents instead.
+
 ## Format inputfiles
 * All lines starting with `#` as the first character are skipped as comments.
 * $ringtimes: lines with `HH:MMsR` where `s` is Schedule (Normal schedule is
