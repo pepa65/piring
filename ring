@@ -310,7 +310,7 @@ Gpio out
 trap Exittrap QUIT EXIT
 
 mod=$(stat -c %y "$ringdates")
-Log "- Validating dates in '$(readlink -f "$ringdates")' from ${mod:0:16}"
+Log "- Validating dates in '$(readlink -f "$ringdates")' from ${mod:0:19}"
 error=0
 today=$(date +'%Y-%m-%d')
 [[ -f "$ringdates" ]] &&
@@ -381,7 +381,7 @@ s=
 ((errors+=error))
 
 mod=$(stat -c %y "$ringtimes")
-Log "- Validating times in '$(readlink -f "$ringtimes")' from ${mod:0:16}"
+Log "- Validating times in '$(readlink -f "$ringtimes")' from ${mod:0:19}"
 error=0
 [[ ! -f "$ringtimes" ]] &&
 	Error "No input file '$ringtimes'"
