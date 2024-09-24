@@ -69,10 +69,6 @@ pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1
 # Directory names, scripts and input filenames
 ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
 ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state touchlog=$touchscreen/touch.log
-[[ -f ringtimes.csv ]] &&
-	ringtimes=ringtimes.csv
-[[ -f ringdates.csv ]] &&
-	ringdates=ringdates.csv
 
 Log(){ # $1:message $2(optional):timeflag
 	local datetime
@@ -296,6 +292,10 @@ on=0 off=1 output=op buttonspid=  # reversed on & off
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
+[[ -f ringtimes.csv ]] &&
+	ringtimes=ringtimes.csv
+[[ -f ringdates.csv ]] &&
+	ringdates=ringdates.csv
 
 Log $'\n'"# Ring program initializing" time
 Log "> Amplifier switch-on delay ${ampdelay}s"
@@ -310,7 +310,7 @@ Gpio out
 trap Exittrap QUIT EXIT
 
 mod=$(stat -c %y "$ringdates")
-Log "- Validating dates in '$(readlink -f "$ringdates")' from ${mod:0:19}"
+Log "- Validating '$(readlink -f "$ringdates")' from ${mod:0:19}"
 error=0
 today=$(date +'%Y-%m-%d')
 [[ -f "$ringdates" ]] &&
@@ -381,7 +381,7 @@ s=
 ((errors+=error))
 
 mod=$(stat -c %y "$ringtimes")
-Log "- Validating times in '$(readlink -f "$ringtimes")' from ${mod:0:19}"
+Log "- Validating '$(readlink -f "$ringtimes")' from ${mod:0:19}"
 error=0
 [[ ! -f "$ringtimes" ]] &&
 	Error "No input file '$ringtimes'"
