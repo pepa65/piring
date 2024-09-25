@@ -8,11 +8,11 @@ in1=dates.csv in2=times.csv out1=ringdates.csv out2=ringtimes.csv
 
 # Download 'Bell ring schedule'[DATES] as CSV
 [[ $1 = -d || $1 = --download || ! -f $in1 ]] &&
-	wget --no-verbose -O "$in1" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=1216116057&single=true&output=csv'
+	wget -qO "$in1" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=1216116057&single=true&output=csv'
 
 # Download 'Bell ring schedule'[TIMES] as CSV
 [[ $1 = -d || $1 = --download || ! -f $in2 ]] &&
-	wget --no-verbose -O "$in2" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=0&single=true&output=csv'
+	wget -qO "$in2" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=0&single=true&output=csv'
 
 # Remove CRLF, Comments (column D), Header line, Lines starting with '#', Lines with empty column B
 # Replace ',M' at the end with ',-', ',' at the end with ', '

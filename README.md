@@ -46,12 +46,20 @@ opposite corner. The signal pin (37) is next to the ground pin.
   - When all is in order the program starts and output is logged to stdout.
 
 ## Input from Google sheet
-When running `getcsv`, the information from `ringdates` and `ringtimes` is
-pulled from the Google sheet `Bell ring schedule` (adjust the links in `getcsv`
-to pull your own). This will generate `ringdates.csv` and `ringtimes.csv`, and
-if they are present, `ring` will use their contents instead.
+When running `getcsv`, the information for dates & times is pulled from the
+Google sheet `Bell ring schedule` (adjust the links in `getcsv` to pull your
+own). This will generate `ringdates.csv` and `ringtimes.csv`, and if they are
+present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
 
-## Format inputfiles
+### Serving the log and offering sheet reload
+**Replace IP with the IP address of the device!**
+* Start webserver: `php -S IP:8888 -t ~/git/piring/web`
+* Reload the Google sheet and restart, access: `http://IP:8888/reload.php`
+* Access the log to check if the data was valid and restart successfull:
+  `http://IP:8888/log`
+* Start (or restart) `ring` like: `ring >~/git/piring/web/log`
+
+## Format plaintext inputfiles
 * All lines starting with `#` as the first character are skipped as comments.
 * $ringtimes: lines with `HH:MMsR` where `s` is Schedule (Normal schedule is
   space/empty, and Special schedule codes have an alphabetic character) and
@@ -70,8 +78,9 @@ if they are present, `ring` will use their contents instead.
   All characters after position 12 resp. 23 are ignored as a comment.
 
 ## Required
-wiringpi(gpio) coreutils(sleep fold readlink) sox(play) date
-[$buttons: python2.7 python-pygame] [`rc.local`: tmux(optional)]
+wiringpi(gpio) coreutils(sleep fold stat readlink) sox(play) date
+[$buttons: python2.7 python-pygame] [`atreboot`: tmux(optional)]
+[webserver to control Google sheets download: php-fpm(optional)]
 
 ## Deployment
 See file `INSTALL`

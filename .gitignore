@@ -3,3 +3,4 @@ touchscreen/touch.log
 *.csv
 dates
 times
+web/log

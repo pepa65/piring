@@ -54,7 +54,7 @@ set +xv
 #   (even if that date is also a No-Bells date!).
 #   All characters after position 12 resp. 23 are ignored as a comment.
 #
-# Required: coreutils(sleep fold readlink) sox(play) date
+# Required: coreutils(sleep fold readlink stat) sox(play) date
 #  [$buttons: python-pygame] [installation: tmux(optional)]
 #
 # License: GPLv3+  https://spdx.org/licenses/GPL-3.0-or-later.html
