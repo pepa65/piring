@@ -51,9 +51,9 @@ opposite corner. The signal pin (37) is next to the ground pin.
   - When all is in order the program starts and output is logged to stdout.
 
 ## Input from Google sheet
-When running `getcsv`, the information for dates & times is pulled from the
-Google sheet `Bell ring schedule` (adjust the links in `getcsv` to pull your
-own). This will generate `ringdates.csv` and `ringtimes.csv`, and if they are
+When running `getcsv` with `-d`, the information for dates & times is pulled
+from the Google sheet `Bell ring schedule` (adjust links in `getcsv` to pull
+your own). This generates `ringdates.csv` and `ringtimes.csv`, and if they are
 present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
 
 ### Serving the log and offering Google sheet reload
