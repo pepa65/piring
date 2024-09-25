@@ -11,8 +11,11 @@ sudo -i
 # Set the desired screensaver timeout, and no lock!
 
 # Refresh the repo info, upgrade and install prerequisite packages and git
+```
 apt update && apt full-upgrade
-apt install sox tmux csvtool  # python3-pygame and git are already installed!
+apt install sox tmux csvtool hostname php-cli
+# python3-pygame and git are already installed!**
+```
 
 # Quit root and change to the default user
 exit

@@ -9,8 +9,9 @@ Using Ubuntu 18.04 and software that is no longer well supported beyond 2021
 
 ## Required
 wiringpi(gpio) coreutils(sleep fold stat readlink) sox(play) date
-[$buttons: python2.7 python-pygame] [`atreboot`: tmux(optional)]
-[webserver to control Google sheets download: php-fpm(optional) hostname]
+* $buttons: python2.7 python-pygame
+* `atreboot`: tmux iputils-ping(ping) coreutils(sleep tee) procps(pgrep)
+* Webserver to control Google sheets download: php-cli(php) hostname
 
 ## Hardware and pinout
 Raspberry Pi with 3.5" 480x320 touchscreen and a relay that controls the
@@ -63,9 +64,9 @@ present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
 * Reload the Google sheet and restart, access: `http://IP:8888/reload.php`
 * Access the log to check if the data was valid and restart successfull:
   `http://IP:8888/log`
-* (Re)start `ring` like: `~/git/piring/ring |tee -a ~/git/piring/web/log`
+* (Re)start `ring` like: `~/git/piring/ring |tee ~/git/piring/web/log`
 
-Put `alias ring='~/git/piring/ring |tee -a ~/git/piring/web/log'` in `.bashrc`
+Put `alias ring='~/git/piring/ring |tee ~/git/piring/web/log'` in `.bashrc`
 works well.
 
 If `ring` gets restarted from the `reload.php` script, there is no output on
