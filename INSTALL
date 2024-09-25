@@ -25,6 +25,11 @@ mkdir git
 cd git
 git clone https://gitlab.com/pepa65/piring
 
+# If connecting through wifi, copy wpa_supplicant.conf to /etc/wpa_supplicant/
+# Make sure to set 'SSID' and 'password'!
+#mkdir -p /etc/wpa_supplicant
+#cp piring/wpa_supplicant /etc/wpa_supplicant/
+
 # Set autostart with cron
 crontab -e
 # Make sure this line is there:  @reboot ~/git/piring/atreboot
