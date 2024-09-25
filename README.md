@@ -62,6 +62,7 @@ present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
 * Start webserver: `php -S IP:8888 -t ~/git/piring/web &`
   (This can be done by using `atreboot` in a @reboot cron job, see `INSTALL`)
 * Reload the Google sheet and restart, access: `http://IP:8888/reload.php`
+  (could be through `curl -m9 IP:8888/reload.php`).
 * Access the log to check if the data was valid and restart successfull:
   `http://IP:8888/log`
 * (Re)start `ring` like: `~/git/piring/ring |tee ~/git/piring/web/log`
@@ -70,7 +71,8 @@ Put `alias ring='~/git/piring/ring |tee ~/git/piring/web/log'` in `.bashrc`
 works well.
 
 If `ring` gets restarted from the `reload.php` script, there is no output on
-the terminal anymore, only through the web log interface.
+the terminal anymore, only through the web log interface. But if you want
+log on the terminal: `tail -f -n +1 ~/git/piring/web/log`
 `
 ## Format plaintext inputfiles
 * All lines starting with `#` as the first character are skipped as comments.
