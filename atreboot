@@ -1,7 +1,23 @@
 #!/usr/bin/env bash
-# atreboot - Run at reboot by crontab
 
-# Start 'ring' on a tmux session if no session exists yet
-[[ $TMUX ]] && echo "Running tmux session, not starting, try: tmux a" && exit
+# atreboot - Run at reboot by crontab
+# Required: hostname ping coreutils(sleep tee) procps(pgrep) php-cli(php) tmux
+
+# Make sure internet is up
+while ! ping -c 1 8.8.8.8 &>/dev/null
+do sleep 1
+done
+
+# Check if php server is running, start if not
+! pgrep -f 'php ' >/dev/null &&
+	_=$(hostname -I) ip=${_%% *} &&
+	php -S $ip:8888 -t ~/git/piring/web &
+
+# Check for existing tmux session
+[[ $TMUX ]] &&
+	echo "Running tmux session, not starting, try: tmux a" &&
+	exit
+
+# Start 'ring' on a tmux session
 cd
 /usr/bin/tmux new-s -d "git/piring/ring |tee -a git/piring/ring/web/log"

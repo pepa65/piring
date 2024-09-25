@@ -24,5 +24,4 @@ git clone https://gitlab.com/pepa65/piring
 
 # Set autostart with cron
 crontab -e
-# Make sure this line is there:  @reboot /home/USERNAME/git/piring/atreboot
-#  with USERNAME replaced by the actual user name
+# Make sure this line is there:  @reboot ~/git/piring/atreboot
