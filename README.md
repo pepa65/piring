@@ -11,7 +11,7 @@ Using Ubuntu 18.04 and software that is no longer well supported beyond 2021
 wiringpi(gpio) coreutils(sleep fold stat readlink) sox(play) date
 * $buttons: python2.7 python-pygame
 * `atreboot`: tmux iputils-ping(ping) coreutils(sleep tee) procps(pgrep)
-* Webserver to control Google sheets download: php-cli(php) hostname
+* Webserver to control Google sheets download: php-fpm(php) hostname
 
 ## Hardware and pinout
 Raspberry Pi with 3.5" 480x320 touchscreen and a relay that controls the

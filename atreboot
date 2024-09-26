@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 
 # atreboot - Run at reboot by crontab
-# Required: hostname iputils-ping(ping) coreutils(sleep tee) procps(pgrep) php-cli(php) tmux
+# Required: hostname iputils-ping(ping) coreutils(sleep tee) procps(pgrep) php-fpm(php) tmux
 
 # Make sure internet is up
 while ! ping -c 1 8.8.8.8 &>/dev/null
 do sleep 1
 done
+
+# Start ring
+echo '<pre>' >~/git/piring/web/log
+~/git/piring/ring >>~/git/piring/web/log &
 
 # Check if php server is running, start if not
 ! pgrep -f 'php ' >/dev/null &&
@@ -18,6 +22,5 @@ done
 	echo "Running tmux session, not starting, try: tmux a" &&
 	exit
 
-# Start 'ring' on a tmux session
-cd
-/usr/bin/tmux new-s -d "~/git/piring/ring |tee ~/git/piring/web/log"
+# Start tail on a tmux session
+/usr/bin/tmux new-s -d "tail -f -n +1 ~/git/piring/web/log"
