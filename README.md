@@ -56,6 +56,9 @@ When running `getcsv` with `-d`, the information for dates & times is pulled
 from the Google sheet `Bell ring schedule` (adjust links in `getcsv` to pull
 your own). This generates `ringdates.csv` and `ringtimes.csv`, and if they are
 present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
+* From the pi itself: `./getcsv -d`
+* From another machine on the LAN: `wget -t1 -T5 -qO- 'IP:8888/reload.php?key=KEY'`
+  (replace IP with the pi's IP address and KEY with the key set in `web/reload.php`)
 
 ### Serving the log and offering Google sheet reload
 **Replace IP with the IP address of the device!**
