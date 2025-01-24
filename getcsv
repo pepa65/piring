@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 set +x -e  # No trace, stop on errors
 # get - Download and convert Bell ring schedule Google sheet
-# Usage: get [-n|--no-download | -r|--restart]
+# Usage: get [-n|--no-download | -r|--reboot]
 #     -n/--no-download:  Just construct ringdates.csv & ringtimes.csv
-#     -r/--restart:      Download, construct and restart ring
+#     -r/--restart:      Download, construct and reboot
 #     default:           Download and construct
 # Required: wget sed grep csvtool
 
 in1=dates.csv in2=times.csv out1=ringdates.csv out2=ringtimes.csv
 
 # Download 'Bell ring schedule'[DATES] as CSV
-[[ ! $1 = -n && ! $1 = --no-download || $1 = -r || $1 = --restart || ! -f $in1 ]] &&
+[[ ! $1 = -n && ! $1 = --no-download || $1 = -r || $1 = --reboot || ! -f $in1 ]] &&
 	wget -qO "$in1" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=1216116057&single=true&output=csv'
 
 # Download 'Bell ring schedule'[TIMES] as CSV
-[[ ! $1 = -n && ! $1 = --no-download || $1 = -r || $1 = --restart || ! -f $in2 ]] &&
+[[ ! $1 = -n && ! $1 = --no-download || $1 = -r || $1 = --reboot || ! -f $in2 ]] &&
 	wget -qO "$in2" 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQR3-Mbnryxp_XSwmo07FkRsrTiZVEElS1Ffh_hYnGuLq1ZHvHT0DjVRbtxoC8aig267csTlkVxVg6U/pub?gid=0&single=true&output=csv'
 
 # Remove CRLF, Comments (column D), Header line, Lines starting with '#', Lines with empty column B
@@ -41,5 +41,5 @@ sed 's/,\([0-9]:[0-5][0-9],\)/,0\1/' "${in2%.csv}" |  # Time as HH:MM
 	csvtool format '%2%1%3\n' - >"$out2"
 
 # Restart ring
-[[ $1 = -r || $1 = --restart ]] &&
+[[ $1 = -r || $1 = --reboot ]] &&
 	~/git/piring/ring
