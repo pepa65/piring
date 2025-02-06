@@ -8,7 +8,8 @@ set +x -e  # No trace, stop on errors
 # Required: wget sed grep csvtool
 # For the reboot functionality as non-root: sudo chmod u+s $(type -p reboot)
 
-in1=dates.csv in2=times.csv out1=ringdates.csv out2=ringtimes.csv
+dir=~/git/piring in1=dates.csv in2=times.csv out1=ringdates.csv out2=ringtimes.csv
+cd "$dir"
 
 # Download 'Bell ring schedule'[DATES] as CSV
 [[ ! $1 = -n && ! $1 = --no-download || $1 = -r || $1 = --reboot || ! -f $in1 ]] &&
