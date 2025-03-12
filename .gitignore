@@ -1,6 +1,7 @@
 touchscreen/state
 touchscreen/touch.log
-*.csv
 dates
 times
+dates.csv
+times.csv
 web/log
