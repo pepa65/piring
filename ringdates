@@ -1,8 +1,11 @@
+# No longer used when the Google Sheet is in effect!
+# (when `ringdates.csv` is present).
+
 ## YYYY-MM-DDsP | YYYY-MM-DD/YYYY-MM-DDsP (= date / start/end-date)
 ## - s(schedule): space|empty (= Everything off) | alphabetical (= Special schedule code)
 ## - P(plus): '+' (= IN ADDITION to Normal schedule) | ' '|'' (= REPLACE Normal schedule)
 
-# Normal schedule 2020/2021/2022/2023/2024
+# Normal schedule 2020/2021/2022/2023/2024/2025/2026
 # C+: No elementary bells
 # d+: No bell between periods 7-8
 # E+: Only Elementary

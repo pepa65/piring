@@ -3,7 +3,7 @@ set +x -e  # No trace, stop on errors
 # get - Download and convert Bell ring schedule Google sheet
 # Usage: get [-n|--no-download | -r|--reboot]
 #     -n/--no-download:  Just construct ringdates.csv & ringtimes.csv
-#     -r/--restart:      Download, construct and reboot
+#     -r/--reboot:       Download, construct and reboot
 #     default:           Download and construct
 # Required: wget sed grep csvtool
 # For the reboot functionality as non-root: sudo chmod u+s $(type -p reboot)

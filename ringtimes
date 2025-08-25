@@ -1,8 +1,11 @@
+# No longer used when the Google Sheet is in effect!
+# (when `ringtimes.csv` is present).
+
 ## HH:MMsR (= time)
 ## s(schedule): space|empty (= Normal schedule) | alphabetical (= Special schedule code)
 ## R(ringtone): numerical (= Ringtone code) | space|empty (= Ringtone 0) | '-' (= Mute)
 
-# Normal schedule 2020/2021/2022/2023/2024
+# Normal schedule 2020/2021/2022/2023/2024/2025/2026
 # C+: No elementary bells
 # d: No bell between periods 7-8
 # E+: Only Elementary
