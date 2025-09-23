@@ -1,6 +1,6 @@
 #!/usr/bin/env python2.7
 #coding: utf-8
-# Required: python2.7 pygame
+# Required: python2.7/python3 pygame (link python2.7 to python3 if not available)
 
 import pygame as pg
 import os
@@ -68,7 +68,7 @@ while True: # Never stop
 				if event.type == pg.MOUSEBUTTONDOWN:
 					# Middleclick terminates the interface but not the bell system
 					if event.button == middleclick:
-						if debug: os.write(2,'Buttons aborted'+os.linesep)
+						if debug: os.write(2,('Buttons aborted'+os.linesep).encode('utf-8'))
 						pg.quit()
 						os._exit(1)
 					if event.button == leftclick:
@@ -85,7 +85,7 @@ while True: # Never stop
 
 						# Examine selection
 						mx,my = event.pos
-						if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
+						if debug: os.write(2,(str(mx)+','+str(my)+os.linesep).encode('utf-8'))
 						# Check every button
 						schedule = False
 						for b in buttons:
@@ -127,7 +127,7 @@ while True: # Never stop
 					# Either selected or cancelled
 					confirmed = True
 					mx,my = event.pos
-					if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
+					if debug: os.write(2,(str(mx)+','+str(my)+os.linesep).encode('utf-8'))
 					if my>bh: # Lower half of the screen
 						selected = True
 					break # for event loop + while not confirmed loop
