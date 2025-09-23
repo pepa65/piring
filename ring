@@ -1,5 +1,5 @@
 #!/bin/bash
-set -xv
+set +xv
 # piring - Control a school sound system from a Raspberry Pi with touchscreen
 # Usage: ring [-n|--noaction]
 #
@@ -62,19 +62,23 @@ set -xv
 
 # Adjustables: (pins 1-26 are taken up by the touchscreen)
 # BCM pin 26 (pin37): relay switch; pin39: GND; pin2/4: 5V (relay needs 5V)
-pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1 relay=/sys/class/gpio/gpio$pin sim=0
+pin=26 ampdelay=1 pollres=.1 shutoffdelay=.3 display=:0 gpiodelay=1 startdelay=1 relay=/sys/class/gpio/gpio$pin sim=0 gui=1 linelen=37
 [[ $1 = -n || $1 = --noaction ]] &&
+	shift &&
 	sim=1
 
 # Directory names, scripts and input filenames
-ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles
+ringtimes=ringtimes ringdates=ringdates touchscreen=touchscreen soundfiles=soundfiles schedule=schedule.txt
 ring=$(readlink -e "$0") buttons=$touchscreen/buttons state=$touchscreen/state touchlog=$touchscreen/touch.log
+>"$schedule"  # Empty daily schedule
 
-Log(){ # $1:message $2(optional):timeflag
+Log(){ # $1:message $2(optional):timeflag I:schedule
 	local datetime
+	[[ ${1:0:1} = '=' ]] &&
+		fold -s -w $linelen  <<<"${1:13}" >>"$schedule"
 	[[ $2 ]] &&
 		datetime=$(date +'%Y-%m-%d %H:%M:%S')
-	fold -s <<<"$1 $datetime"
+	echo "$1 $datetime"
 }
 
 Error(){ # IO:error  I:i,line  $1:message
@@ -163,7 +167,7 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 	local now=$(date +'%H:%M') today=$(date +'%Y-%m-%d')
 	local additoday=0 spectoday=0 rung=0 speclogged=0
 
-	# Skip if this time has been checked already earlier
+	# Skip if this time has been checked already earlier (this minute)
 	[[ $now = $nowold ]] &&
 		return
 	nowold=$now
@@ -171,11 +175,12 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 	# If muted, register now as rung
 	[[ "${muteds[$now]} " = *" $today "* ]] &&
 		rung=1 &&
-		Log "> $today muting: $now"
+		Log "= $today muting: $now"
 
 	# No daylog yet at the start of a new day (or at program startup)
 	[[ $now = 00:00 ]] &&
-		daylogged=0
+		daylogged=0 &&
+		>"$schedule"  # Empty daily schedule
 
 	# Check all Special schedules
 	for s in "${!specialdates[@]}"
@@ -185,7 +190,7 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 			spectoday=1
 			# Log all special schedules for today if not yet logged
 			((! daylogged && ++speclogged)) &&
-				Log "> $today '$s${additionals[$s]}' day:${schedules[$s]}"
+				Log "= $today '$s${additionals[$s]}' day:${schedules[$s]}"
 			# If any Special schedules is Additional today, mark it
 			[[ ${additionals[$s]} ]] &&
 				additoday=1
@@ -204,7 +209,7 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 		# Log No-Bells day if nothing logged yet today
 		((! daylogged)) &&
 			daylogged=1 &&
-			Log "> $today No-Bells day"
+			Log "= $today No-Bells day"
 		return
 	fi
 
@@ -214,14 +219,14 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 		# Log Weekend day if nothing logged yet today
 		((! daylogged)) &&
 			daylogged=1 &&
-			Log "> $today $(date +'%A')"
+			Log "= $today $(date +'%A')"
 		return
 	fi
 
 	# Log Normal day if nothing (or only special schedules) logged for today
 	((! daylogged)) &&
 		daylogged=1 &&
-		Log "> $today Normal day:${schedules['_']}"
+		Log "= $today Normal day:${schedules['_']}"
 
 	# If not rung yet and: additional schedule or no special schedules at all
 	((! rung && (additoday || ! spectoday))) &&
@@ -231,7 +236,6 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 }
 
 Exittrap(){ # I:playing,buttonspid
-Log "bPID: $buttonspid"
 echo $buttonspid
 	((relayon)) &&
 		Gpio off
@@ -482,13 +486,13 @@ Log "> All input files are valid"
 # Starting the button interface
 [[ ! -f $state ]] &&
 	echo -n "0">"$state"
-if ((!gui))
+if ((gui))
 then
 	DISPLAY=$display $buttons >"$touchlog" &
 	buttonspid=$!
 fi
 sleep $startdelay
-if ((!gui))
+if ((gui))
 then
 	! kill -0 $buttonspid 2>/dev/null &&
 		Log "* Can't start 'buttons'" &&

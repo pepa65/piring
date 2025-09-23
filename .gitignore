@@ -1,7 +1,8 @@
-touchscreen/state
-touchscreen/touch.log
-dates
-times
-dates.csv
-times.csv
-web/log
+/touchscreen/state
+/touchscreen/touch.log
+/schedule.txt
+/dates
+/times
+/dates.csv
+/times.csv
+/web/log

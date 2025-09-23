@@ -12,11 +12,15 @@ touchscreen,driver = '/dev/input/by-path/platform-3f204000.spi-event','ads7846'
 os.environ['SDL_MOUSEDRV'] = driver
 os.environ['SDL_MOUSEDEV'] = touchscreen
 ww,wh,bg,leftclick,middleclick = 480,320,(0,0,0),1,2
-z,bw,bh,cx,cy = 0,ww/2,wh/2,ww/4,wh/4
+z,bw,bh,cx,cy,center = 0,ww/2,wh/2,ww/4,wh/4,50
 btn,x,y,face,facebig = 0,1,2,3,4
-buttons = (('1',z,z,'1.png','1f.png'),('3',bw,z,'3.png','3f.png'),
-	('2',z,bh,'2.png','2f.png'),('4',bw,bh,'4.png','4f.png'))
-logo = 'logo.png'
+buttons = (
+	('1',z,z,'1.png','1f.png'),
+	('3',bw,z,'3.png','3f.png'),
+	('2',z,bh,'2.png','2f.png'),
+	('4',bw,bh,'4.png','4f.png')
+)
+logo,black,gray,fontsize,fontheight = 'logo.png',(0,0,0),(222,222,222),26,23
 dir = os.path.dirname(os.path.abspath(__file__))+'/'
 close,cancel,confirm = dir+'x.png',dir+'cancel.png',dir+'confirm.png'
 state,icon = dir+'state',dir+'icon.png'
@@ -29,6 +33,8 @@ icn = pg.image.load(icon)
 pg.display.set_icon(icn)
 pg.display.set_caption('piring')
 pg.mouse.set_visible(False)
+pg.font.init()
+noto = pg.font.Font('/usr/share/fonts/truetype/noto/NotoSans-Bold.ttf', fontsize)
 # Never use FULLSCREEN as it messes up the touch readings
 win = pg.display.set_mode((ww,wh),pg.NOFRAME)
 blank = False
@@ -62,7 +68,7 @@ while True: # Never stop
 				if event.type == pg.MOUSEBUTTONDOWN:
 					# Middleclick terminates the interface but not the bell system
 					if event.button == middleclick:
-						if debug: os.write(2,'aborted'+os.linesep)
+						if debug: os.write(2,'Buttons aborted'+os.linesep)
 						pg.quit()
 						os._exit(1)
 					if event.button == leftclick:
@@ -81,12 +87,16 @@ while True: # Never stop
 						mx,my = event.pos
 						if debug: os.write(2,str(mx)+','+str(my)+os.linesep)
 						# Check every button
+						schedule = False
 						for b in buttons:
 							if mx>b[x] and mx-bw<b[x] and my>b[y] and my-bh<b[y]:
 								# Pressed button found
 								pressed = True
+								# Center
+								if mx > ww/2-center and mx < ww/2+center and my >wh/2-center and my < wh/2+center:
+									confirmed,selected,schedule = True,True,True
 								# Announcements selected without confirmation
-								if b[btn] == '1':
+								elif b[btn] == '1':
 									confirmed,selected = True,True
 								else:
 									# Show the pressed button with OK/cancel options
@@ -124,13 +134,27 @@ while True: # Never stop
 
 	# Selected: show selected button with close icon and pass it to ring-script
 	Blank = False
-	img = pg.image.load(dir+b[facebig])
-	win.blit(img,(0,0))
-	img = pg.image.load(close)
-	win.blit(img,(425,5))
+	if schedule:
+		win.fill(gray)
+		with open('schedule.txt','r') as file:
+			txt = file.read()
+			lines = txt.splitlines()
+			i = 0
+			for line in lines:
+				l = noto.render(line,True,black)
+				win.blit(l,(0,i*fontheight))
+				i += 1
+		st = '0'
+	else:
+		img = pg.image.load(dir+b[facebig])
+		win.blit(img,(0,0))
+		st = b[btn]
+	if not schedule:
+		img = pg.image.load(close)
+		win.blit(img,(425,5))
 	pg.display.flip()
 	f = open(state,'w')
-	f.write(b[btn])
+	f.write(st)
 	f.close()
 	# Wait for the screen to be pressed
 	closed = False
