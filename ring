@@ -1,5 +1,5 @@
 #!/bin/bash
-set +xv
+set -xv
 # piring - Control a school sound system from a Raspberry Pi with touchscreen
 # Usage: ring [-n|--noaction]
 #
@@ -121,10 +121,9 @@ Button(){ # IO:playing  I:state,button,relayon,soundfiles
 	if ((! button && relayon))
 	then
 		# If actually playing
-		if ((playing)) &&
-			ps $playing >/dev/null
+		if ((playing)) && ps $playing >/dev/null
 		then
-			kill -9 $playing
+			kill -9 $playing 2>/dev/null
 			wait $playing 2>/dev/null
 			Log "* Interrupted sound from process $playing" time
 		fi
@@ -232,11 +231,21 @@ Bellcheck(){ # IO:nowold,daylogged I:nobellsdates,specialdates,schedules,additio
 }
 
 Exittrap(){ # I:playing,buttonspid
+Log "bPID: $buttonspid"
+echo $buttonspid
 	((relayon)) &&
 		Gpio off
 	Gpio down
-	kill "$playing"
-	kill -9 "$buttonspid"
+	((buttonspid)) &&
+		ps $buttonspid >/dev/null &&
+		kill -9 $buttonspid 2>/dev/null
+	((playing)) &&
+		ps $playing >/dev/null &&
+		kill -9 $playing 2>/dev/null
+	((buttonspid)) &&
+		wait $buttonspid
+	((playing)) &&
+		wait $playing
 	Log $'\n'"# Quit" time
 }
 
@@ -288,7 +297,7 @@ Gpio(){ # 1:up|down|out|on|off  I:sim,pin,gpiodelay,relay,off,on  IO:relayon
 # Globals
 declare -A schedules=() ringcodes=() specialdates=() additionals=() muteds=()
 kbd= nobellsdates= nowold= relayon= playing=0 errors=0 i= daylogged=0
-on=0 off=1 output=op buttonspid=  # reversed on & off
+on=0 off=1 output=op buttonspid=0  # reversed on & off
 
 # Read files from the same directory as this script
 cd "${ring%/*}"
@@ -473,15 +482,19 @@ Log "> All input files are valid"
 # Starting the button interface
 [[ ! -f $state ]] &&
 	echo -n "0">"$state"
-((!sim)) &&
+if ((!gui))
+then
 	DISPLAY=$display $buttons >"$touchlog" &
-buttonspid=$!
+	buttonspid=$!
+fi
 sleep $startdelay
-((!sim)) &&
+if ((!gui))
+then
 	! kill -0 $buttonspid 2>/dev/null &&
-	Log "* Can't start 'buttons'" &&
-	exit 3
-Log "> Touchscreen ready, pid: $buttonspid"
+		Log "* Can't start 'buttons'" &&
+		exit 3
+	Log "> Touchscreen ready, pid: $buttonspid"
+fi
 
 # Main loop
 Log "# Ring program starting" time
