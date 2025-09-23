@@ -52,13 +52,21 @@ opposite corner. The signal pin (37) is next to the ground pin.
   - When all is in order the program starts and output is logged to stdout.
 
 ## Input from Google sheet
-When running `getcsv` with `-d`, the information for dates & times is pulled
-from the Google sheet `Bell ring schedule` (adjust links in `getcsv` to pull
-your own). This generates `ringdates.csv` and `ringtimes.csv`, and if they are
-present, `ring` will use their contents instead of `ringdates` and `ringtimes`.
-* From the pi itself: `./getcsv -d`
+When running `getcsv` with `-r` (`--reboot`), the information for dates & times
+is pulled from the Google sheet `Bell ring schedule` (adjust links in `getcsv`
+to pull your own) and the Pi gets rebooted. This downloads `dates.csv` and
+`times.csv`, cleans them up to `dates` and `times`, and generates
+`ringdates.csv` and `ringtimes.csv` with the proper formar equivalent to
+`ringdates` and `ringtimes`, and if those last two are present, the `ring`
+program  will use their contents instead of `ringdates` and `ringtimes`.
+* From the pi itself: `./getcsv -r`
 * From another machine on the LAN: `wget -t1 -T5 -qO- 'IP:8888/reload.php?key=KEY'`
   (replace IP with the pi's IP address and KEY with the key set in `web/reload.php`)
+* The option `-n` (`--no-download`) just rebuilds `ringdates.csv` and
+  `ringtimes.csv` from `dates.csv` and `times.csv`.
+* With no options, `getcsv` downloads and transforms, but the old versions are
+  still being used. Usually, `-r` is used, but note that a reboot takes a few
+  minutes, so time it well..!
 
 ### Serving the log and offering Google sheet reload
 **Replace IP with the IP address of the device!**
